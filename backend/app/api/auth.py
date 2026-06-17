@@ -67,6 +67,19 @@ class FarmerProfile(BaseModel):
         from_attributes = True
 
 
+class UpdateProfileRequest(BaseModel):
+    """All fields optional — only provided fields are updated."""
+    name: str | None = None
+    village: str | None = None
+    mandal: str | None = None
+    district: str | None = None
+    latitude: float | None = None
+    longitude: float | None = None
+    land_size_acres: float | None = None
+    soil_type: str | None = None
+    water_source: str | None = None
+
+
 # ── Helper utilities ────────────────────────────────────────
 
 def _generate_otp(length: int = 6) -> str:
@@ -153,4 +166,20 @@ def get_profile(farmer_id: int, db: Session = Depends(get_db)):
     farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer not found")
+    return farmer
+
+
+@router.put("/profile/{farmer_id}", response_model=FarmerProfile)
+def update_profile(farmer_id: int, req: UpdateProfileRequest, db: Session = Depends(get_db)):
+    """Update an existing farmer's profile fields (partial update)."""
+    farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
+    if not farmer:
+        raise HTTPException(status_code=404, detail="Farmer not found")
+
+    # Only update fields that were explicitly provided
+    for field, value in req.model_dump(exclude_unset=True).items():
+        setattr(farmer, field, value)
+
+    db.commit()
+    db.refresh(farmer)
     return farmer

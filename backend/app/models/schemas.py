@@ -39,6 +39,7 @@ class Crop(Base):
     crop_name = Column(String(100), nullable=False)
     sowing_date = Column(Date, nullable=False)
     crop_stage = Column(String(50), nullable=False, default='Sowing')
+    duration_days = Column(Integer, nullable=False, default=120)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 

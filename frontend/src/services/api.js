@@ -74,6 +74,16 @@ export const getFarmerProfile = async (farmerId) => {
   return res.data;
 };
 
+/**
+ * Update farmer profile (partial update — only provided fields are changed).
+ * Supports: name, village, mandal, district, latitude, longitude,
+ *           land_size_acres, soil_type, water_source
+ */
+export const updateFarmerProfile = async (farmerId, profileData) => {
+  const res = await api.put(`/auth/profile/${farmerId}`, profileData);
+  return res.data;
+};
+
 // ── Weather API ─────────────────────────────────────────────
 
 /**
@@ -212,6 +222,25 @@ export const predictYield = async (params) => {
  */
 export const recommendFertilizer = async (params) => {
   const res = await api.post('/fertilizer/recommend', params);
+  return res.data;
+};
+
+// ── AI Chatbot API ──────────────────────────────────────────
+
+/**
+ * Ask chatbot query to Gemini or local fallback.
+ * @param {string} message - User query
+ * @param {Array} history - Previous messages
+ * @param {number|null} farmerId - Optional farmer ID for personalization
+ * @param {string} language - User interface language ('en' or 'te')
+ */
+export const askChatbot = async (message, history = [], farmerId = null, language = 'en') => {
+  const res = await api.post('/chat/', {
+    message,
+    history,
+    farmer_id: farmerId,
+    language
+  });
   return res.data;
 };
 

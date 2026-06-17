@@ -34,7 +34,10 @@ export const DiseaseScanner = () => {
 
       const runDetection = async () => {
         try {
-          const farmerId = user?.id && user.id !== 0 ? user.id : 1;
+          if (!user?.id || user.id === 0) {
+            throw new Error('Demo mode: bypass API call');
+          }
+          const farmerId = user.id;
           const data = await detectDisease(farmerId, file);
           // data: { disease_name, confidence, treatment, image_path }
           setResult({

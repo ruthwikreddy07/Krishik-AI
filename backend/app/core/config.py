@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     WHATSAPP_API_TOKEN: str = os.getenv("WHATSAPP_API_TOKEN", "")
     WHATSAPP_PHONE_NUMBER_ID: str = os.getenv("WHATSAPP_PHONE_NUMBER_ID", "")
     DATA_GOV_IN_API_KEY: str = os.getenv("DATA_GOV_IN_API_KEY", "")
+    GEMINI_API_KEY: str = os.getenv("GEMINI_API_KEY", "")
 
     # Firebase (used by frontend; stored here for reference)
     FIREBASE_API_KEY: str = os.getenv("FIREBASE_API_KEY", "")

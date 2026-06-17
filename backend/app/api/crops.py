@@ -21,6 +21,7 @@ class CropCreate(BaseModel):
     crop_name: str
     sowing_date: date
     crop_stage: str = "Sowing"
+    duration_days: int = 120
 
 
 class CropUpdate(BaseModel):
@@ -33,6 +34,7 @@ class CropResponse(BaseModel):
     crop_name: str
     sowing_date: date
     crop_stage: str
+    duration_days: int
 
     class Config:
         from_attributes = True
@@ -67,6 +69,7 @@ def add_crop(req: CropCreate, db: Session = Depends(get_db)):
         crop_name=req.crop_name,
         sowing_date=req.sowing_date,
         crop_stage=req.crop_stage,
+        duration_days=req.duration_days,
     )
     db.add(crop)
     db.commit()

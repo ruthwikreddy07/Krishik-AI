@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import { User, MessageSquareCode, Globe, Check, ShieldCheck } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -6,7 +6,13 @@ import { toast } from 'react-toastify';
 export const Profile = () => {
   const { user, language, setLanguage, login, t } = useContext(AppContext);
   const [whatsappEnabled, setWhatsappEnabled] = useState(true);
-  const [whatsappNumber, setWhatsappNumber] = useState(user?.phone || '9876543210');
+  const [whatsappNumber, setWhatsappNumber] = useState(user?.phone || user?.mobile_number || '');
+
+  useEffect(() => {
+    if (user) {
+      setWhatsappNumber(user.phone || user.mobile_number || '');
+    }
+  }, [user]);
 
   const handleSaveSettings = (e) => {
     e.preventDefault();

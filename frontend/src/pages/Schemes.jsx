@@ -11,6 +11,7 @@ export const Schemes = () => {
   // Eligibility checker inputs
   const [landOwned, setLandOwned] = useState('');
   const [caste, setCaste] = useState('General');
+  const [age, setAge] = useState('');
   const [checkedSchemes, setCheckedSchemes] = useState(null);
 
   // Static fallback schemes (shown when DB has no records yet)
@@ -83,12 +84,48 @@ export const Schemes = () => {
     e.preventDefault();
     if (!landOwned) return;
     const landNum = parseFloat(landOwned);
+    const ageNum = parseInt(age) || 35;
     
-    // Simple mock logic
     const results = schemes.map(s => {
       let eligible = true;
-      if (s.id === 2 && landNum > 20) eligible = false; // Just a mock check
-      return { id: s.id, eligible };
+      let reason = "";
+      
+      const title = (s.title || "").toLowerCase();
+
+      if (title.includes("bandhu")) {
+        if (landNum <= 0) {
+          eligible = false;
+          reason = "Requires owning cultivable agricultural land.";
+        }
+      }
+      else if (title.includes("bima")) {
+        if (ageNum < 18 || ageNum > 59) {
+          eligible = false;
+          reason = "Age must be between 18 and 59 years.";
+        }
+        if (landNum <= 0) {
+          eligible = false;
+          reason = "Must hold a pattadar passbook (own land).";
+        }
+      }
+      else if (title.includes("kisan") || title.includes("pm-kisan")) {
+        if (landNum <= 0) {
+          eligible = false;
+          reason = "Requires holding cultivable agricultural land.";
+        }
+        if (landNum > 5) {
+          eligible = false;
+          reason = "Exceeds targeted land ceiling of 5 acres for small-scale category.";
+        }
+      }
+      else if (title.includes("irrigation") || title.includes("drip")) {
+        if (landNum <= 0) {
+          eligible = false;
+          reason = "Requires holding agricultural land.";
+        }
+      }
+      
+      return { id: s.id, eligible, reason };
     });
     
     setCheckedSchemes(results);
@@ -179,9 +216,14 @@ export const Schemes = () => {
                     </div>
                     
                     {eligCheck && (
-                      <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold border ${eligCheck.eligible ? 'border-green-500/30 bg-green-950/20 text-green-400' : 'border-red-500/30 bg-red-950/20 text-red-400'}`}>
-                        {eligCheck.eligible ? 'QUALIFIED' : 'NOT ELIGIBLE'}
-                      </span>
+                      <div className="flex flex-col items-end gap-1">
+                        <span className={`px-2.5 py-0.5 rounded text-[10px] font-mono font-bold border ${eligCheck.eligible ? 'border-green-500/30 bg-green-950/20 text-green-400' : 'border-red-500/30 bg-red-950/20 text-red-400'}`}>
+                          {eligCheck.eligible ? 'QUALIFIED' : 'NOT ELIGIBLE'}
+                        </span>
+                        {!eligCheck.eligible && eligCheck.reason && (
+                          <span className="text-[9px] text-red-400 max-w-[200px] text-right font-mono">{eligCheck.reason}</span>
+                        )}
+                      </div>
                     )}
                   </div>
 
@@ -244,7 +286,10 @@ export const Schemes = () => {
                 <input
                   type="number"
                   placeholder="e.g. 45"
+                  value={age}
+                  onChange={(e) => setAge(e.target.value)}
                   className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3 text-sm text-white outline-none transition-all"
+                  required
                 />
               </div>
 

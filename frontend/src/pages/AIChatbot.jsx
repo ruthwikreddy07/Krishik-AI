@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
 import { MessageSquare, Send, Bot, User, HelpCircle, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { askChatbot } from '../services/api';
 
 export const AIChatbot = () => {
   const { user, language, t } = useContext(AppContext);
@@ -10,11 +11,12 @@ export const AIChatbot = () => {
       text: language === 'te' 
         ? "నమస్కారం! నేను మీ కృత్రిమ మేధస్సు (AI) వ్యవసాయ సహాయకుడిని. మీ పంటల గురించి ఏవైనా ప్రశ్నలు ఉంటే అడగండి."
         : "Hello! I am your AI farming assistant. Ask me anything about crop recommendations, pest control, or weather changes.",
-      time: "14:40"
+      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [audioActive, setAudioActive] = useState(false);
+  const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
 
   const suggestedQuestions = [
@@ -29,10 +31,10 @@ export const AIChatbot = () => {
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages]);
+  }, [messages, loading]);
 
-  const handleSendMessage = (textToSend) => {
-    if (!textToSend.trim()) return;
+  const handleSendMessage = async (textToSend) => {
+    if (!textToSend.trim() || loading) return;
 
     // Add user message
     const userMsg = {
@@ -40,31 +42,15 @@ export const AIChatbot = () => {
       text: textToSend,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
+    
+    const currentHistory = [...messages];
     setMessages(prev => [...prev, userMsg]);
     setInputValue('');
+    setLoading(true);
 
-    // Simulate AI response based on questions
-    setTimeout(() => {
-      let responseText = "";
-      const query = textToSend.toLowerCase();
-
-      if (query.includes("water") || query.includes("irrigation") || query.includes("నీరు")) {
-        responseText = language === 'te'
-          ? `రైతు సోదరా, మీ పొలం మట్టి రకం: ${user?.soilType || "ఎర్ర ఇసుక"}. ప్రస్తుత ఉష్ణోగ్రత 32°C కావున, వరి పంటకు ప్రతి 4-5 రోజులకు ఒకసారి తేలికపాటి తడులు ఇవ్వడం అవసరం. ముఖ్యంగా పొట్టదశలో నీరు నిలకడగా ఉండేలా చూసుకోండి.`
-          : `Dear Farmer, since your soil type is ${user?.soilType || "Red Sandy"} and temperature is 32°C, you should irrigate your Paddy field every 4-5 days. Ensure standing water during the flowering stage.`;
-      } else if (query.includes("fertilizer") || query.includes("ఎరువులు")) {
-        responseText = language === 'te'
-          ? "పత్తి పంట పూత దశలో ఉంది కాబట్టి ఎకరానికి 50 కిలోల యూరియా మరియు 15 కిలోల పొటాష్ మొదటి దఫాగా వేయండి. ఎరువులు వేసేటప్పుడు మట్టిలో తగినంత తేమ ఉండేలా చూసుకోండి."
-          : "For Cotton in the flowering phase, apply 50 kg Urea and 15 kg MOP (Muriate of Potash) per acre. Ensure adequate soil moisture during fertilizer application.";
-      } else if (query.includes("leaf curl") || query.includes("ముడత")) {
-        responseText = language === 'te'
-          ? "మిరప ఆకు ముడత నివారణకు ఎకరానికి డయాఫెన్థియురాన్ (Polo) 240 గ్రాములు లేదా ఫిప్రోనిల్ 400 మి.లీ చొప్పున 200 లీటర్ల నీటిలో కలిపి పిచికారీ చేయండి."
-          : "To prevent Chilli Leaf Curl, spray Diafenthiuron @ 240g or Fipronil @ 400ml in 200 liters of water per acre.";
-      } else {
-        responseText = language === 'te'
-          ? `ధన్యవాదాలు. మీ ప్రశ్నను విశ్లేషిస్తున్నాను. మీ ప్రాంతం ${user?.village || "నల్గొండ"} వాతావరణ పరిస్థితులకు అనుగుణంగా త్వరలో సమగ్ర సమాచారం అందిస్తాను.`
-          : `Analyzing your query for your farm in ${user?.village || "Nalgonda"}. Based on your Red Sandy soil, I recommend maintaining balanced nitrogen dressing.`;
-      }
+    try {
+      const data = await askChatbot(textToSend, currentHistory, user?.id, language);
+      const responseText = data.response;
 
       setMessages(prev => [...prev, {
         sender: "bot",
@@ -73,12 +59,43 @@ export const AIChatbot = () => {
       }]);
 
       if (audioActive) {
-        // Simulate reading response (SpeechSynthesis simulation)
+        window.speechSynthesis.cancel();
         const utterance = new SpeechSynthesisUtterance(responseText);
         utterance.lang = language === 'te' ? 'te-IN' : 'en-US';
         window.speechSynthesis.speak(utterance);
       }
-    }, 1500);
+    } catch (err) {
+      console.error("Chat API error:", err);
+      // Local fallback logic
+      let responseText = "";
+      const query = textToSend.toLowerCase();
+
+      if (query.includes("water") || query.includes("irrigation") || query.includes("నీరు")) {
+        responseText = language === 'te'
+          ? `రైతు సోదరా, మీ పొలం మట్టి రకం: ${user?.soil_type || user?.soilType || "ఎర్ర ఇసుక"}. ప్రస్తుత వాతావరణ పరిస్థితుల దృష్ట్యా పంటకు ప్రతి 4-5 రోజులకు ఒకసారి తేలికపాటి తడులు ఇవ్వడం అవసరం. ముఖ్యంగా పొట్టదశలో నీరు నిలకడగా ఉండేలా చూసుకోండి.`
+          : `Dear Farmer, since your soil type is ${user?.soil_type || user?.soilType || "Red Sandy"}, you should irrigate your field every 4-5 days. Ensure standing water during critical stages.`;
+      } else if (query.includes("fertilizer") || query.includes("ఎరువులు")) {
+        responseText = language === 'te'
+          ? "పంట పూత దశలో ఉన్నప్పుడు ఎకరానికి 50 కిలోల యూరియా మరియు 15 కిలోల పొటాష్ మొదటి దఫాగా వేయండి. ఎరువులు వేసేటప్పుడు మట్టిలో తగినంత తేమ ఉండేలా చూసుకోండి."
+          : "Apply 50 kg Urea and 15 kg MOP (Muriate of Potash) per acre. Ensure adequate soil moisture during fertilizer application.";
+      } else if (query.includes("leaf curl") || query.includes("ముడత")) {
+        responseText = language === 'te'
+          ? "ఆకు ముడత మరియు తెగుళ్ళ నివారణకు ఎకరానికి డయాఫెన్థియురాన్ (Polo) 240 గ్రాములు లేదా ఫిప్రోనిల్ 400 మి.లీ చొప్పున 200 లీటర్ల నీటిలో కలిపి పిచికారీ చేయండి."
+          : "To prevent Leaf Curl or pest infestation, spray Diafenthiuron @ 240g or Fipronil @ 400ml in 200 liters of water per acre.";
+      } else {
+        responseText = language === 'te'
+          ? `ధన్యవాదాలు. మీ ప్రశ్నను విశ్లేషిస్తున్నాను. మీ ప్రాంతం ${user?.village || "నల్గొండ"} పంట పరిస్థితులకు అనుగుణంగా త్వరలో సమగ్ర సమాచారం అందిస్తాను.`
+          : `Analyzing your query for your farm in ${user?.village || "Nalgonda"}. Based on your farm profile, we recommend maintaining balanced nitrogen dressing.`;
+      }
+
+      setMessages(prev => [...prev, {
+        sender: "bot",
+        text: responseText,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -124,7 +141,7 @@ export const AIChatbot = () => {
             <div className={`w-8 h-8 rounded-lg border flex items-center justify-center flex-shrink-0
               ${msg.sender === 'user' 
                 ? 'bg-slate-900 border-green-500/30 text-green-400' 
-                : 'bg-green-500/10 border-green-500/40 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.2)]'
+                : 'bg-green-500/10 border-green-500/40 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.25)]'
               }
             `}>
               {msg.sender === 'user' ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
@@ -138,18 +155,34 @@ export const AIChatbot = () => {
                   : 'bg-slate-950/50 border-green-500/10 text-slate-300 rounded-tl-none'
                 }
               `}>
-                <p>{msg.text}</p>
+                <p className="whitespace-pre-line">{msg.text}</p>
               </div>
               <span className="block text-[9px] font-mono text-slate-500 text-right px-1">{msg.time}</span>
             </div>
 
           </div>
         ))}
+
+        {loading && (
+          <div className="flex gap-3 max-w-[80%] mr-auto animate-fade-in">
+            <div className="w-8 h-8 rounded-lg border bg-green-500/10 border-green-500/40 text-green-400 shadow-[0_0_8px_rgba(34,197,94,0.25)] flex items-center justify-center flex-shrink-0">
+              <Bot className="w-4 h-4 text-green-400" />
+            </div>
+            <div className="space-y-1">
+              <div className="p-4 rounded-2xl border border-green-500/10 bg-slate-950/50 text-slate-400 rounded-tl-none flex items-center gap-1.5 h-10 px-4">
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
 
       {/* Suggested Quick Questions */}
-      {messages.length === 1 && (
+      {messages.length === 1 && !loading && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
           {suggestedQuestions.map((q, idx) => (
             <button
@@ -172,13 +205,14 @@ export const AIChatbot = () => {
         <input
           type="text"
           value={inputValue}
+          disabled={loading}
           onChange={(e) => setInputValue(e.target.value)}
           placeholder={language === 'te' ? "వ్యవసాయ సంబంధిత ప్రశ్న టైప్ చేయండి..." : "Ask your agronomy question..."}
-          className="flex-grow bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3.5 text-xs text-white outline-none transition-all focus:shadow-[0_0_15px_rgba(34,197,94,0.1)]"
+          className="flex-grow bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3.5 text-xs text-white outline-none transition-all focus:shadow-[0_0_15px_rgba(34,197,94,0.1)] disabled:opacity-50"
         />
         <button
           type="submit"
-          disabled={!inputValue.trim()}
+          disabled={!inputValue.trim() || loading}
           className="py-3 px-5 bg-green-600 hover:bg-green-500 disabled:bg-green-950/40 disabled:text-slate-600 disabled:border-transparent text-slate-900 font-bold rounded-xl transition-all duration-300 flex items-center justify-center border border-green-400 shadow-[0_4px_20px_rgba(34,197,94,0.25)] glow-btn"
         >
           <Send className="w-4 h-4" />

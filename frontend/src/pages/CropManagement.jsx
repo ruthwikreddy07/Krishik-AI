@@ -57,6 +57,7 @@ export const CropManagement = () => {
           crop_name: data.name,
           sowing_date: data.sownDate,
           crop_stage: 'Sowing',
+          duration_days: parseInt(data.durationDays) || 120,
         });
         setCrops(prev => [...prev, newCrop]);
         toast.success(`${data.name} crop track added!`);

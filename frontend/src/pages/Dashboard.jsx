@@ -52,10 +52,7 @@ export const Dashboard = () => {
     progress: getStageProgress(c.crop_stage),
     sown: new Date(c.sowing_date).toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' }),
     color: 'bg-green-500',
-  })) : [
-    { name: "Paddy (Rice)", stage: "Vegetative Phase", progress: 65, sown: "May 10, 2026", color: "bg-green-500" },
-    { name: "Cotton", stage: "Flowering Phase", progress: 40, sown: "June 02, 2026", color: "bg-emerald-400" },
-  ];
+  })) : [];
 
   // Weather display values
   const getWeatherDisplay = () => {
@@ -92,11 +89,57 @@ export const Dashboard = () => {
     alerts.push({ type: "system", message: "All farm conditions are nominal. No critical alerts at this time.", severity: "low", color: "border-green-500/30 bg-green-950/20 text-green-400" });
   }
 
-  const tasks = [
-    { task: "Apply Potassium Nitrogen Fertilizer to Paddy", due: "Today", completed: false },
-    { task: "Initiate Irrigation cycles due to rising dry heat", due: "Tomorrow", completed: false },
-    { task: "Inspect cotton leaves for whitefly activity", due: "June 20", completed: false }
-  ];
+  // Smart farm tasks: generated dynamically from crops + weather data
+  const generateTasks = () => {
+    const taskList = [];
+    const today = new Date();
+    const fmt = (d) => d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+
+    // Weather-based tasks
+    if (weather) {
+      const forecast = weather.forecast || weather.forecast_days || [];
+      const rainSoon = forecast.slice(0, 2).some(d =>
+        (d.rain_probability || d.rain_probability_pct || 0) > 55
+      );
+      if (rainSoon) {
+        taskList.push({ task: 'Rain expected soon — postpone spraying and secure crop supports', due: 'Today', completed: false });
+      }
+      const soilMoist = weather.current?.soil_moisture;
+      if (soilMoist != null && soilMoist < 0.15) {
+        taskList.push({ task: 'Soil moisture is low — initiate irrigation immediately', due: 'Today', completed: false });
+      }
+      const hotDay = forecast.find(d => (d.temp_max || 0) > 40);
+      if (hotDay) {
+        taskList.push({ task: `Heat alert on ${fmt(new Date(hotDay.date))} — apply mulch and water in the evening`, due: fmt(new Date(hotDay.date)), completed: false });
+      }
+    }
+
+    // Crop-stage-based tasks
+    crops.forEach((crop) => {
+      const stage = crop.crop_stage || 'Sowing';
+      const name = crop.crop_name;
+      if (stage === 'Sowing' || stage === 'Germination') {
+        taskList.push({ task: `Check seed germination progress for ${name}`, due: 'Tomorrow', completed: false });
+      } else if (stage === 'Vegetative') {
+        taskList.push({ task: `Apply first nitrogen dose to ${name} — vegetative stage`, due: fmt(new Date(today.getTime() + 86400000)), completed: false });
+      } else if (stage === 'Flowering') {
+        taskList.push({ task: `Inspect ${name} flowers for pests — critical stage`, due: 'Today', completed: false });
+      } else if (stage === 'Grain Filling') {
+        taskList.push({ task: `Monitor ${name} grain fill — avoid moisture stress`, due: fmt(new Date(today.getTime() + 2 * 86400000)), completed: false });
+      } else if (stage === 'Harvesting') {
+        taskList.push({ task: `Prepare harvesting equipment for ${name}`, due: 'Today', completed: false });
+      }
+    });
+
+    // Default task if nothing generated
+    if (taskList.length === 0) {
+      taskList.push({ task: 'Add your crops and enable weather GPS for personalised task reminders', due: 'Anytime', completed: false });
+    }
+
+    return taskList.slice(0, 4); // max 4 tasks
+  };
+
+  const tasks = generateTasks();
 
   return (
     <div className="space-y-6 page-fade-in">

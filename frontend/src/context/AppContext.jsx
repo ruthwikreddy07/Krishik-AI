@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { getFarmerProfile } from '../services/api';
 
 export const AppContext = createContext();
 
@@ -38,6 +39,35 @@ export const AppProvider = ({ children }) => {
     setUser(null);
     setToken(null);
   };
+
+  // Enrich user profile from backend after login to get GPS coords and DB fields
+  useEffect(() => {
+    if (user?.id && user.id !== 0 && token) {
+      getFarmerProfile(user.id)
+        .then((profile) => {
+          const enriched = {
+            ...user,
+            name: profile.name,
+            village: profile.village,
+            mandal: profile.mandal,
+            district: profile.district,
+            landSize: String(profile.land_size_acres),
+            soilType: profile.soil_type,
+            waterSource: profile.water_source,
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+            isVerified: profile.is_verified,
+          };
+          // Update localStorage so it persists across refreshes
+          localStorage.setItem('farmer_user', JSON.stringify(enriched));
+          setUser(enriched);
+        })
+        .catch(() => {
+          // If profile fetch fails (e.g. backend down), keep existing data
+        });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, token]);
 
   // Translations object
   const t = {

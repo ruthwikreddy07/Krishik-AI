@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer
+from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat
 from .core.database import check_db_connection, init_db
 
 logger = logging.getLogger("farmer_assistant")
@@ -60,6 +60,7 @@ app.include_router(market.router)
 app.include_router(schemes.router)
 app.include_router(weather.router)
 app.include_router(yield_fertilizer.router)
+app.include_router(chat.router)
 
 
 @app.get("/")

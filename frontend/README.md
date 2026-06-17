@@ -1,4 +1,4 @@
-# Krishi AI — Startup Frontend Design Guide
+# Krishik AI — Startup Frontend Design Guide
 
 Inspired by the **AI Project Manager** landing page at `ai-agent-for-project-management.onrender.com`.
 
@@ -112,11 +112,11 @@ Below the hero content there is a **stats row** showing impact metrics:
 
 ---
 
-## 🌱 Adapting This to Krishi AI (Our Plan)
+## 🌱 Adapting This to Krishik AI (Our Plan)
 
 ### Color Adaptation (Agriculture Theme)
 
-| Element | AI Project Manager | Krishi AI Adaptation |
+| Element | AI Project Manager | Krishik AI Adaptation |
 |---|---|---|
 | Background | Deep Navy `#0a0e1a` | Deep Forest Night `#071209` |
 | Cards | `#0d1226` | `#0a1d10` (slightly green-tinted dark) |

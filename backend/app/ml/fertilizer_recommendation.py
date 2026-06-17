@@ -13,7 +13,11 @@ _model = None
 
 def _load_model():
     global _model
+    if _model is not None:
+        return
     model_path = settings.FERTILIZER_MODEL_PATH
+    if not os.path.exists(model_path):
+        model_path = os.path.join("..", model_path)
     if os.path.exists(model_path):
         with open(model_path, "rb") as f:
             _model = pickle.load(f)

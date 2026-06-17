@@ -1,5 +1,5 @@
 /**
- * Krishi AI — Centralized API Service Layer
+ * Krishik AI — Centralized API Service Layer
  * All backend calls go through this file.
  * Vite proxy forwards /api/* → http://localhost:8000/api/*
  */

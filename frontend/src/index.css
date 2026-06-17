@@ -3,7 +3,7 @@
 @import "tailwindcss";
 
 /* ============================================
-   KRISHI AI — PREMIUM STARTUP DESIGN SYSTEM
+   Krishik AI — PREMIUM STARTUP DESIGN SYSTEM
    Inspired by top-tier AI SaaS landing pages
    ============================================ */
 
@@ -21,17 +21,25 @@
     --text-muted: #64748b;
 
     /* Brand Colors */
-    --accent-primary: #10b981;   /* Emerald 500 */
-    --accent-secondary: #059669; /* Emerald 600 */
+    --accent-primary: #10b981;
+    /* Emerald 500 */
+    --accent-secondary: #059669;
+    /* Emerald 600 */
     --accent-glow: rgba(16, 185, 129, 0.2);
 
     /* Feature Card Icon Colors (unique per card) */
-    --color-weather: #38bdf8;    /* Sky Blue */
-    --color-disease: #f87171;    /* Red/Rose */
-    --color-market: #fbbf24;     /* Amber */
-    --color-schemes: #a78bfa;    /* Violet */
-    --color-crop: #34d399;       /* Emerald */
-    --color-chat: #fb923c;       /* Orange */
+    --color-weather: #38bdf8;
+    /* Sky Blue */
+    --color-disease: #f87171;
+    /* Red/Rose */
+    --color-market: #fbbf24;
+    /* Amber */
+    --color-schemes: #a78bfa;
+    /* Violet */
+    --color-crop: #34d399;
+    /* Emerald */
+    --color-chat: #fb923c;
+    /* Orange */
 
     /* Border */
     --border-subtle: rgba(16, 185, 129, 0.12);
@@ -62,9 +70,9 @@
   position: fixed;
   inset: 0;
   background-image:
-    radial-gradient(circle, rgba(255,255,255,0.5) 1px, transparent 1px),
-    radial-gradient(circle, rgba(255,255,255,0.3) 1px, transparent 1px),
-    radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px);
+    radial-gradient(circle, rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.3) 1px, transparent 1px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.2) 1px, transparent 1px);
   background-size: 150px 150px, 300px 300px, 200px 200px;
   background-position: 0 0, 75px 75px, 40px 120px;
   pointer-events: none;
@@ -72,27 +80,33 @@
   opacity: 0.35;
 }
 
-.glass-card, .glass-panel, .card-3d {
+.glass-card,
+.glass-panel,
+.card-3d {
   background: var(--bg-card);
   border: 1px solid var(--border-card);
   border-radius: 16px;
   transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.glass-card:hover, .glass-panel:hover, .card-3d:hover {
+.glass-card:hover,
+.glass-panel:hover,
+.card-3d:hover {
   border-color: rgba(16, 185, 129, 0.25);
   transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 20px var(--accent-glow);
 }
 
-.glass-panel-blue, .card-3d-blue {
+.glass-panel-blue,
+.card-3d-blue {
   background: #091a24;
   border: 1px solid rgba(56, 189, 248, 0.12);
   border-radius: 16px;
   transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-.glass-panel-blue:hover, .card-3d-blue:hover {
+.glass-panel-blue:hover,
+.card-3d-blue:hover {
   border-color: rgba(56, 189, 248, 0.25);
   transform: translateY(-4px);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 189, 248, 0.15);
@@ -172,8 +186,11 @@
 .btn-primary::after {
   content: '';
   position: absolute;
-  top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
   transition: 0.5s;
 }
 
@@ -254,8 +271,13 @@
 }
 
 @keyframes marquee-scroll {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
 }
 
 .marquee-item {
@@ -365,46 +387,103 @@
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================
    SCROLLBAR
    ============================================ */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--bg-primary); }
-::-webkit-scrollbar-thumb { background: rgba(16, 185, 129, 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(16, 185, 129, 0.6); }
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.3);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.6);
+}
 
 /* ============================================
    UTILITY ANIMATIONS
    ============================================ */
 @keyframes ping {
-  75%, 100% { transform: scale(2); opacity: 0; }
+
+  75%,
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* Utility classes for animations */
-.animate-ping  { animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite; }
-.animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
-.animate-spin  { animation: spin 1s linear infinite; }
+.animate-ping {
+  animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
 
 /* Sandbox scanning laser animation */
 @keyframes laser-scan {
-  0% { top: 0%; opacity: 0; }
-  10% { opacity: 1; }
-  90% { opacity: 1; }
-  100% { top: 100%; opacity: 0; }
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .animate-laser {
@@ -413,11 +492,17 @@
 
 /* Audio wave keyframes for weather advisory playback */
 @keyframes wave-bar-bounce {
-  0%, 100% { transform: scaleY(0.3); }
-  50% { transform: scaleY(1); }
+
+  0%,
+  100% {
+    transform: scaleY(0.3);
+  }
+
+  50% {
+    transform: scaleY(1);
+  }
 }
 
 .animate-audio-bar {
   animation: wave-bar-bounce 0.8s ease-in-out infinite;
 }
-

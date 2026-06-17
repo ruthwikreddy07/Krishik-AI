@@ -56,6 +56,8 @@ def _load_model():
     if _model is not None:
         return
     model_path = settings.DISEASE_MODEL_PATH
+    if not os.path.exists(model_path):
+        model_path = os.path.join("..", model_path)
     class_mapping_path = os.path.join(os.path.dirname(model_path), "disease_classes.json")
 
     if os.path.exists(model_path):

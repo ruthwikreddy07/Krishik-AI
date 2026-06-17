@@ -61,7 +61,7 @@ INSERT INTO government_schemes (title, description, eligibility_criteria, benefi
  'Real-time price discovery across mandis. Direct payment to farmer bank account. Reduced intermediary costs. Better price realization.',
  'Central'),
 
-('Paramparagat Krishi Vikas Yojana (PKVY)',
+('Paramparagat Krishik Vikas Yojana (PKVY)',
  'Promotes organic farming through cluster approach and PGS (Participatory Guarantee System) certification.',
  'Farmer groups (clusters of 50+ farmers with 50 acres). Priority for tribal and northeastern regions.',
  'Rs. 50,000 per hectare over 3 years for organic inputs, certification, and marketing. Free PGS organic certification.',

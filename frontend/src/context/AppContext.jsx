@@ -8,7 +8,7 @@ export const AppProvider = ({ children }) => {
     const savedUser = localStorage.getItem('farmer_user');
     return savedUser ? JSON.parse(savedUser) : null;
   });
-  
+
   const [token, setToken] = useState(() => localStorage.getItem('farmer_token') || null);
   const [language, setLanguageState] = useState(() => localStorage.getItem('farmer_lang') || 'en'); // Default to English
   const [theme, setThemeState] = useState(() => localStorage.getItem('farmer_theme') || 'dark');
@@ -66,13 +66,13 @@ export const AppProvider = ({ children }) => {
           // If profile fetch fails (e.g. backend down), keep existing data
         });
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id, token]);
 
   // Translations object
   const t = {
     en: {
-      appName: "Krishi AI",
+      appName: "Krishik AI",
       tagline: "24/7 AI-Powered Personal Farming Assistant",
       dashboard: "Dashboard",
       myFarm: "My Farm",
@@ -95,7 +95,7 @@ export const AppProvider = ({ children }) => {
       loading: "Processing..."
     },
     te: {
-      appName: "కృషి AI",
+      appName: "కృషిక్ AI",
       tagline: "తెలంగాణ రైతుకు 24/7 వ్యక్తిగత AI వ్యవసాయ సహాయకుడు",
       dashboard: "డ్యాష్‌బోర్డ్",
       myFarm: "నా పొలం",
@@ -118,7 +118,7 @@ export const AppProvider = ({ children }) => {
       loading: "ప్రక్రియ జరుగుతోంది..."
     },
     hi: {
-      appName: "कृषि AI",
+      appName: "कृषिक AI",
       tagline: "24/7 एआई-संचालित व्यक्तिगत कृषि सहायक",
       dashboard: "डैशबोर्ड",
       myFarm: "मेरा खेत",

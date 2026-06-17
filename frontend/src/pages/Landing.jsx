@@ -25,7 +25,7 @@ const localT = {
     featuresTitle: "Enterprise-Grade AI Features",
     featuresDesc: "Six powerful AI modules working together to give every Telangana farmer a personalized, data-driven agricultural advisor.",
     joinFarmers: "Join 50,000+ Farmers",
-    alreadyUsing: "Already Using Krishi AI",
+    alreadyUsing: "Already Using Krishik AI",
     joinDesc: "No app download needed. No subscription fees. Verified by Rythu Bandhu. Works in Telugu, Hindi, and English on any mobile browser.",
     openDashboard: "Open Dashboard",
     farmerReg: "Farmer Registration",
@@ -132,7 +132,7 @@ export const Landing = () => {
 
   // Sandbox state variables
   const [sandboxTab, setSandboxTab] = useState('disease'); // 'disease' | 'market' | 'weather'
-  
+
   // Disease Classifier Sandbox states
   const [selectedSandboxLeaf, setSelectedSandboxLeaf] = useState('paddy'); // 'paddy' | 'cotton' | 'chilli'
   const [isSandboxScanning, setIsSandboxScanning] = useState(false);
@@ -151,13 +151,13 @@ export const Landing = () => {
       setIsSandboxAudioPlaying(false);
     } else {
       setIsSandboxAudioPlaying(true);
-      
+
       const textToSpeak = language === 'te'
         ? "నల్గొండ జిల్లా వాతావరణ హెచ్చరిక. రాబోయే రెండు రోజుల్లో భారీ వర్షాలు కురిసే అవకాశం ఉంది. దయచేసి ఎరువులు చల్లడం వాయిదా వేయండి మరియు పంట కాలువలు సిద్ధం చేసుకోండి."
         : "Nalgonda district weather warning: Heavy rainfall is expected in the next two days. Please postpone fertilizer application and prepare crop drainage lines.";
 
       const utterance = new SpeechSynthesisUtterance(textToSpeak);
-      
+
       // Select language code
       utterance.lang = language === 'te' ? 'te-IN' : 'en-IN';
 
@@ -445,7 +445,7 @@ export const Landing = () => {
       icon: MessageSquare, title: "Telugu AI Chatbot", color: "var(--color-chat)",
       bg: "rgba(251,146,60,0.08)", border: "rgba(251,146,60,0.2)",
       desc: "Ask farming questions in Telugu, Hindi, or English. Get voice-enabled responses and expert crop advisory 24/7.",
-      tag: "ask_krishi_ai"
+      tag: "ask_Krishik_ai"
     },
   ];
 
@@ -461,7 +461,7 @@ export const Landing = () => {
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #059669, #10b981)', boxShadow: '0 0 16px rgba(16,185,129,0.4)' }}>
               <Sprout className="w-5 h-5 text-white" />
             </div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>Krishi AI</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '18px', color: '#ffffff' }}>Krishik AI</span>
           </div>
 
           {/* Nav Links — Desktop */}
@@ -659,7 +659,7 @@ export const Landing = () => {
       {/* ===================== LIVE INTERACTIVE PLAYGROUNDS ===================== */}
       <section style={{ padding: '100px 0', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          
+
           {/* Section header */}
           <div className="text-center space-y-4 mb-12">
             <div className="flex justify-center">
@@ -981,7 +981,7 @@ export const Landing = () => {
                         11 Jun – 17 Jun
                       </span>
                     </div>
-                    
+
                     {/* SVG Curve drawing */}
                     <div style={{ width: '100%', overflow: 'visible' }}>
                       <svg viewBox="0 0 320 100" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
@@ -991,7 +991,7 @@ export const Landing = () => {
                             <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
                           </linearGradient>
                         </defs>
-                        
+
                         {/* Grid lines */}
                         <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
                         <line x1="0" y1="50" x2="320" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
@@ -1003,7 +1003,7 @@ export const Landing = () => {
                           const min = Math.min(...history);
                           const max = Math.max(...history);
                           const range = max - min || 1;
-                          
+
                           const points = history.map((val, idx) => {
                             const x = (idx * 320) / (history.length - 1);
                             const y = 80 - ((val - min) * 60) / range;
@@ -1141,7 +1141,7 @@ export const Landing = () => {
               </div>
             )}
           </div>
-          
+
         </div>
       </section>
 
@@ -1283,7 +1283,7 @@ export const Landing = () => {
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>District *</label>
                         <select value={regForm.district} onChange={e => setRegForm(p => ({ ...p, district: e.target.value }))}
                           style={{ width: '100%', background: '#0d1f10', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '11px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}>
-                          {['Nalgonda','Warangal','Khammam','Karimnagar','Nizamabad','Medak','Rangareddy','Adilabad'].map(d => (
+                          {['Nalgonda', 'Warangal', 'Khammam', 'Karimnagar', 'Nizamabad', 'Medak', 'Rangareddy', 'Adilabad'].map(d => (
                             <option key={d} value={d}>{d}</option>
                           ))}
                         </select>
@@ -1301,7 +1301,7 @@ export const Landing = () => {
                         <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Soil Type</label>
                         <select value={regForm.soil_type} onChange={e => setRegForm(p => ({ ...p, soil_type: e.target.value }))}
                           style={{ width: '100%', background: '#0d1f10', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '11px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}>
-                          {['Red Sandy','Black Clayey','Loamy','Laterite','Alluvial'].map(s => <option key={s} value={s}>{s}</option>)}
+                          {['Red Sandy', 'Black Clayey', 'Loamy', 'Laterite', 'Alluvial'].map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                       </div>
                     </div>
@@ -1310,7 +1310,7 @@ export const Landing = () => {
                       <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Water Source</label>
                       <select value={regForm.water_source} onChange={e => setRegForm(p => ({ ...p, water_source: e.target.value }))}
                         style={{ width: '100%', background: '#0d1f10', border: '1px solid var(--border-card)', borderRadius: '10px', padding: '11px 14px', color: '#fff', fontSize: '13px', outline: 'none' }}>
-                        {['Borewell','Canal','Rain-fed','River','Tank','Drip Irrigation'].map(w => <option key={w} value={w}>{w}</option>)}
+                        {['Borewell', 'Canal', 'Rain-fed', 'River', 'Tank', 'Drip Irrigation'].map(w => <option key={w} value={w}>{w}</option>)}
                       </select>
                     </div>
 
@@ -1379,10 +1379,10 @@ export const Landing = () => {
             <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'linear-gradient(135deg,#059669,#10b981)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Sprout style={{ width: '16px', height: '16px', color: '#fff' }} />
             </div>
-            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '15px', color: '#ffffff' }}>Krishi AI</span>
+            <span style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '15px', color: '#ffffff' }}>Krishik AI</span>
           </div>
           <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-            © 2026 Krishi AI — Engineered for Telangana Farmers. Built with 🌿 and AI.
+            © 2026 Krishik AI — Engineered for Telangana Farmers. Built with 🌿 and AI.
           </p>
           <div className="flex gap-6">
             {['Privacy', 'Terms', 'Contact'].map(link => (

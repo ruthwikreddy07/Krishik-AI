@@ -6,7 +6,7 @@ import os
 import uuid
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from ..core.config import settings
 from ..core.database import get_db
 from ..models.schemas import DiseaseRecord, Farmer
 from ..ml.disease_detection import detect_disease
+from .auth import get_current_farmer
 
 router = APIRouter(prefix="/api/disease", tags=["Disease Detection"])
 
@@ -50,15 +51,18 @@ async def detect_crop_disease(
     farmer_id: int = Form(...),
     crop_id: int | None = Form(None),
     image: UploadFile = File(...),
+    current_farmer: Farmer = Depends(get_current_farmer),
     db: Session = Depends(get_db),
 ):
     """
-    Upload a crop leaf image and get CNN-based disease detection results.
+    Upload a crop leaf image and get CNN-based disease detection results (Authenticated).
     The image is saved and the prediction is stored in the database.
     """
-    farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
-    if not farmer:
-        raise HTTPException(status_code=404, detail="Farmer not found")
+    if current_farmer.id != farmer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you can only upload images for your own profile"
+        )
 
     # Validate file type (only allow image formats)
     allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
@@ -82,7 +86,6 @@ async def detect_crop_disease(
     result = detect_disease(filepath)
 
     # Build a web-accessible URL path for the stored image
-    # The /uploads static mount in main.py serves this directory.
     image_url_path = f"/uploads/disease_images/{filename}"
 
     # Save record to database
@@ -106,8 +109,18 @@ async def detect_crop_disease(
 
 
 @router.get("/history/{farmer_id}", response_model=list[DiseaseResponse])
-def get_disease_history(farmer_id: int, db: Session = Depends(get_db)):
-    """Get all past disease detection records for a farmer."""
+def get_disease_history(
+    farmer_id: int,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
+    """Get all past disease detection records for the authenticated farmer."""
+    if current_farmer.id != farmer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you can only view your own history"
+        )
+
     records = (
         db.query(DiseaseRecord)
         .filter(DiseaseRecord.farmer_id == farmer_id)

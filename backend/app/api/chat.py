@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from ..core.database import get_db
 from ..core.config import settings
 from ..models.schemas import Farmer, Crop
+from .auth import get_current_farmer
 
 logger = logging.getLogger("farmer_assistant")
 router = APIRouter(prefix="/api/chat", tags=["AI Chatbot"])
@@ -26,27 +27,27 @@ class ChatResponse(BaseModel):
     response: str
 
 @router.post("/", response_model=ChatResponse)
-async def chat_with_assistant(req: ChatRequest, db: Session = Depends(get_db)):
-    # 1. Fetch farmer profile & crops if farmer_id is provided
-    profile_info = ""
-    farmer = None
-    if req.farmer_id and req.farmer_id > 0:
-        farmer = db.query(Farmer).filter(Farmer.id == req.farmer_id).first()
-        if farmer:
-            crops = db.query(Crop).filter(Crop.farmer_id == req.farmer_id).all()
-            crops_str = ", ".join([c.crop_name for c in crops]) if crops else "None registered yet"
-            profile_info = (
-                f"Farmer Name: {farmer.name}\n"
-                f"Location: {farmer.village} village, {farmer.mandal} mandal, {farmer.district} district, Telangana\n"
-                f"Soil Type: {farmer.soil_type}\n"
-                f"Water Source: {farmer.water_source}\n"
-                f"Land Size: {farmer.land_size_acres} acres\n"
-                f"Active Crops Sown: {crops_str}\n"
-            )
+async def chat_with_assistant(
+    req: ChatRequest,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
+    # Fetch farmer profile & crops using authenticated current_farmer
+    farmer = current_farmer
+    crops = db.query(Crop).filter(Crop.farmer_id == farmer.id).all()
+    crops_str = ", ".join([c.crop_name for c in crops]) if crops else "None registered yet"
+    profile_info = (
+        f"Farmer Name: {farmer.name}\n"
+        f"Location: {farmer.village} village, {farmer.mandal} mandal, {farmer.district} district, Telangana\n"
+        f"Soil Type: {farmer.soil_type}\n"
+        f"Water Source: {farmer.water_source}\n"
+        f"Land Size: {farmer.land_size_acres} acres\n"
+        f"Active Crops Sown: {crops_str}\n"
+    )
 
     # 2. Build instructions & contents for Gemini
     system_instruction = (
-        "You are Krishi AI, a professional, smart, and friendly AI Farming Assistant for Telangana farmers.\n"
+        "You are Krishik AI, a professional, smart, and friendly AI Farming Assistant for Telangana farmers.\n"
         "You have access to the farmer's database. Provide localized, accurate, and practical agronomy advice.\n"
         "Recommend correct fertilizers, pesticide solutions, water management practices, and local crop cycles.\n"
         "Keep your response concise, clear, and action-oriented. Suggest modern sustainable farming techniques.\n"
@@ -94,7 +95,7 @@ async def chat_with_assistant(req: ChatRequest, db: Session = Depends(get_db)):
         logger.info("Gemini API key is not configured. Using fallback local response.")
         return ChatResponse(response=get_fallback_response(req.message, req.language))
 
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={settings.GEMINI_API_KEY}"
     
     contents = []
     for msg in req.history:

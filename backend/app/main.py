@@ -2,11 +2,12 @@ import logging
 import os
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat
+from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat, whatsapp
 from .core.database import check_db_connection, init_db
 
 logger = logging.getLogger("farmer_assistant")
@@ -74,6 +75,7 @@ app.include_router(schemes.router)
 app.include_router(weather.router)
 app.include_router(yield_fertilizer.router)
 app.include_router(chat.router)
+app.include_router(whatsapp.router)
 
 
 @app.get("/")
@@ -90,7 +92,13 @@ def read_root():
 @app.get("/health")
 def health_check():
     db_ok = check_db_connection()
-    return {
-        "status": "healthy",
+    body = {
+        "status": "healthy" if db_ok else "unhealthy",
         "database": "connected" if db_ok else "disconnected",
     }
+    if not db_ok:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content=body,
+        )
+    return body

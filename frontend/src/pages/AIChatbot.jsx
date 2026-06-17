@@ -1,6 +1,7 @@
 import React, { useState, useContext, useRef, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
-import { MessageSquare, Send, Bot, User, HelpCircle, Volume2, VolumeX, Sparkles } from 'lucide-react';
+import { MessageSquare, Send, Bot, User, HelpCircle, Volume2, VolumeX, Sparkles, Mic, MicOff } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { askChatbot } from '../services/api';
 
 export const AIChatbot = () => {
@@ -17,7 +18,57 @@ export const AIChatbot = () => {
   const [inputValue, setInputValue] = useState('');
   const [audioActive, setAudioActive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [recognizing, setRecognizing] = useState(false);
   const messagesEndRef = useRef(null);
+  const recognitionRef = useRef(null);
+
+  // Initialize Speech Recognition
+  useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = false;
+      rec.interimResults = false;
+      rec.lang = language === 'te' ? 'te-IN' : 'en-US';
+
+      rec.onstart = () => {
+        setRecognizing(true);
+      };
+
+      rec.onend = () => {
+        setRecognizing(false);
+      };
+
+      rec.onerror = (e) => {
+        console.error("Speech recognition error:", e);
+        setRecognizing(false);
+        toast.error(language === 'te' ? 'వాయిస్ గుర్తింపులో లోపం ఏర్పడింది.' : 'Voice recognition failed.');
+      };
+
+      rec.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setInputValue(transcript);
+          toast.success(language === 'te' ? 'వాయిస్ విజయవంతంగా టైప్ చేయబడింది!' : 'Voice successfully transcribed!');
+        }
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, [language]);
+
+  const toggleSpeechInput = () => {
+    if (!recognitionRef.current) {
+      toast.error(language === 'te' ? 'మీ బ్రౌజర్ వాయిస్ ఇన్‌పుట్‌ను సపోర్ట్ చేయదు.' : 'Speech input is not supported by your browser.');
+      return;
+    }
+    if (recognizing) {
+      recognitionRef.current.stop();
+    } else {
+      setInputValue('');
+      recognitionRef.current.start();
+    }
+  };
 
   const suggestedQuestions = [
     { text: "When should I water my Paddy?", telugu: "నా వరి పంటకు నీరు ఎప్పుడు పెట్టాలి?" },
@@ -202,12 +253,29 @@ export const AIChatbot = () => {
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(inputValue); }}
         className="flex gap-3 items-center"
       >
+        <button
+          type="button"
+          onClick={toggleSpeechInput}
+          className={`py-3.5 px-4 rounded-xl border transition-all duration-300 flex items-center justify-center cursor-pointer
+            ${recognizing 
+              ? 'bg-red-500/20 border-red-500/50 text-red-400 animate-pulse shadow-[0_0_15px_rgba(239,68,68,0.3)]' 
+              : 'bg-green-500/10 border-green-500/20 text-green-400 hover:bg-green-500/20'
+            }
+          `}
+          title={language === 'te' ? 'వాయిస్ ఇన్‌పుట్' : 'Voice Input'}
+        >
+          {recognizing ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+        </button>
+
         <input
           type="text"
           value={inputValue}
           disabled={loading}
           onChange={(e) => setInputValue(e.target.value)}
-          placeholder={language === 'te' ? "వ్యవసాయ సంబంధిత ప్రశ్న టైప్ చేయండి..." : "Ask your agronomy question..."}
+          placeholder={recognizing 
+            ? (language === 'te' ? "వాయిస్ రికార్డ్ అవుతోంది... మాట్లాడండి" : "Listening... Speak agronomy query") 
+            : (language === 'te' ? "వ్యవసాయ సంబంధిత ప్రశ్న టైప్ చేయండి..." : "Ask your agronomy question...")
+          }
           className="flex-grow bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3.5 text-xs text-white outline-none transition-all focus:shadow-[0_0_15px_rgba(34,197,94,0.1)] disabled:opacity-50"
         />
         <button

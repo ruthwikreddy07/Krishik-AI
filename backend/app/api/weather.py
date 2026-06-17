@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from ..core.database import get_db
 from ..models.schemas import Farmer
+from .auth import get_current_farmer
 
 router = APIRouter(prefix="/api/weather", tags=["Weather"])
 
@@ -221,12 +222,22 @@ async def get_weather_by_location(
 # ── Main endpoint (farmer GPS-based) ───────────────────────
 
 @router.get("/{farmer_id}", response_model=WeatherResponse)
-async def get_weather(farmer_id: int, db: Session = Depends(get_db)):
+async def get_weather(
+    farmer_id: int,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
     """
     Get hyperlocal weather data for a farmer based on their registered GPS coordinates.
     Includes current conditions, 7-day forecast, irrigation advisory, and crop advisory.
     Data sourced from the Open-Meteo API (free, no key required).
     """
+    if current_farmer.id != farmer_id:
+        raise HTTPException(
+            status_code=403,
+            detail="Access forbidden: you can only view weather for your own coordinates"
+        )
+
     farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer not found")

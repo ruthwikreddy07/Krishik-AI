@@ -20,6 +20,8 @@ def _load_model():
     if _model is not None:
         return
     model_path = settings.CROP_RECOMMEND_MODEL_PATH
+    if not os.path.exists(model_path):
+        model_path = os.path.join("..", model_path)
     encoder_path = os.path.join(os.path.dirname(model_path), "crop_label_encoder.pkl")
 
     if os.path.exists(model_path):

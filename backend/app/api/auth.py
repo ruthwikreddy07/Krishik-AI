@@ -4,9 +4,11 @@ No passwords; verification is via OTP sent to the farmer's mobile number.
 """
 import random
 import string
+import logging
 from datetime import datetime, timezone, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Security
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from jose import jwt
@@ -15,7 +17,10 @@ from ..core.config import settings
 from ..core.database import get_db
 from ..models.schemas import Farmer
 
+logger = logging.getLogger("farmer_assistant")
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+
+security = HTTPBearer()
 
 
 # ── Pydantic request / response models ──────────────────────
@@ -93,6 +98,36 @@ def _create_access_token(farmer_id: int) -> str:
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
+def get_current_farmer(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_db)
+) -> Farmer:
+    """Validate JWT token and return the authenticated farmer."""
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        farmer_id_str: str = payload.get("sub")
+        if not farmer_id_str:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid access token: missing subject",
+            )
+        farmer_id = int(farmer_id_str)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate credentials or token expired",
+        )
+
+    farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
+    if not farmer:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Farmer profile not found",
+        )
+    return farmer
+
+
 # ── Endpoints ───────────────────────────────────────────────
 
 @router.post("/register", response_model=FarmerProfile, status_code=status.HTTP_201_CREATED)
@@ -132,10 +167,50 @@ def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
     farmer.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
     db.commit()
 
-    # TODO: Integrate actual SMS / WhatsApp delivery here
+    # Meta WhatsApp API integration
+    whatsapp_success = False
+    if settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_NUMBER_ID:
+        import httpx
+        formatted_num = req.mobile_number.strip()
+        if not formatted_num.startswith("+"):
+            if len(formatted_num) == 10:
+                formatted_num = f"+91{formatted_num}"
+            elif formatted_num.startswith("91") and len(formatted_num) == 12:
+                formatted_num = f"+{formatted_num}"
+            else:
+                formatted_num = f"+91{formatted_num}"
+
+        url = f"https://graph.facebook.com/v18.0/{settings.WHATSAPP_PHONE_NUMBER_ID}/messages"
+        headers = {
+            "Authorization": f"Bearer {settings.WHATSAPP_API_TOKEN}",
+            "Content-Type": "application/json",
+        }
+        payload = {
+            "messaging_product": "whatsapp",
+            "recipient_type": "individual",
+            "to": formatted_num,
+            "type": "text",
+            "text": {
+                "body": f"కృషిక్ AI: మీ లాగిన్ ఓటిపి (OTP): {otp}. ఇది 5 నిమిషాల వరకు మాత్రమే పనిచేస్తుంది.\n\nKrishik AI: Your verification code is {otp}. Valid for 5 minutes."
+            }
+        }
+        try:
+            with httpx.Client(timeout=5.0) as client:
+                resp = client.post(url, json=payload, headers=headers)
+                if resp.status_code in (200, 201):
+                    logger.info(f"WhatsApp OTP sent to {formatted_num}")
+                    whatsapp_success = True
+                else:
+                    logger.error(f"WhatsApp API failed: {resp.status_code} - {resp.text}")
+        except Exception as e:
+            logger.exception("Error calling WhatsApp API:")
+    else:
+        logger.warning("WhatsApp API credentials missing. OTP was only saved to the database.")
+
     response = {"message": "OTP sent successfully"}
+    if not whatsapp_success:
+        response["message"] += " (Dev Mode)"
     if settings.DEBUG:
-        # Only expose OTP in development mode — NEVER in production!
         response["otp_dev_only"] = otp
     return response
 
@@ -164,25 +239,38 @@ def verify_otp(req: VerifyOTPRequest, db: Session = Depends(get_db)):
 
 
 @router.get("/profile/{farmer_id}", response_model=FarmerProfile)
-def get_profile(farmer_id: int, db: Session = Depends(get_db)):
-    """Get a farmer's profile by ID."""
-    farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
-    if not farmer:
-        raise HTTPException(status_code=404, detail="Farmer not found")
-    return farmer
+def get_profile(
+    farmer_id: int,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
+    """Get a farmer's profile by ID (Authenticated)."""
+    if current_farmer.id != farmer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you can only view your own profile"
+        )
+    return current_farmer
 
 
 @router.put("/profile/{farmer_id}", response_model=FarmerProfile)
-def update_profile(farmer_id: int, req: UpdateProfileRequest, db: Session = Depends(get_db)):
-    """Update an existing farmer's profile fields (partial update)."""
-    farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
-    if not farmer:
-        raise HTTPException(status_code=404, detail="Farmer not found")
+def update_profile(
+    farmer_id: int,
+    req: UpdateProfileRequest,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
+    """Update an existing farmer's profile fields (Authenticated)."""
+    if current_farmer.id != farmer_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you can only update your own profile"
+        )
 
     # Only update fields that were explicitly provided
     for field, value in req.model_dump(exclude_unset=True).items():
-        setattr(farmer, field, value)
+        setattr(current_farmer, field, value)
 
     db.commit()
-    db.refresh(farmer)
-    return farmer
+    db.refresh(current_farmer)
+    return current_farmer

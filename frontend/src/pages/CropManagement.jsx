@@ -1,0 +1,179 @@
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { Sprout, Calendar, Sparkles, Plus, AlertCircle } from 'lucide-react';
+import { toast } from 'react-toastify';
+
+export const CropManagement = () => {
+  // Simulated initial crops list
+  const [crops, setCrops] = useState([
+    { id: 1, name: "Paddy (Rice)", variety: "Telangana Sona (RNR 15048)", sownDate: "2026-05-10", stage: "Tillering Stage", progress: 65, durationDays: 120 },
+    { id: 2, name: "Cotton", variety: "BG-II Hybrid", sownDate: "2026-06-02", stage: "Flowering Stage", progress: 40, durationDays: 160 }
+  ]);
+
+  const { register, handleSubmit, reset, formState: { errors } } = useForm();
+
+  const getDaysElapsed = (dateStr) => {
+    const sown = new Date(dateStr);
+    const today = new Date();
+    const diffTime = Math.abs(today - sown);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays;
+  };
+
+  const onAddCrop = (data) => {
+    const newCrop = {
+      id: crops.length + 1,
+      name: data.name,
+      variety: data.variety || "Standard Hybrid",
+      sownDate: data.sownDate,
+      stage: "Sowing Stage",
+      progress: 5,
+      durationDays: parseInt(data.durationDays) || 120
+    };
+    
+    setCrops([...crops, newCrop]);
+    reset();
+    toast.success(`${data.name} track initiated!`, {
+      theme: "dark",
+      toastId: "crop-add-success"
+    });
+  };
+
+  return (
+    <div className="space-y-8 page-fade-in">
+      
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-green-500/10 border border-green-500/40 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.3)]">
+          <Sprout className="w-5 h-5 text-green-400 animate-bounce" />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold font-heading text-slate-100 glow-text-green">Crop Management Trackers</h2>
+          <p className="text-xs text-slate-400 mt-0.5">Add and track crop lifecycles with customized growth markers and warning advisory notifications.</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        {/* Left Col: Crops List (7 columns) */}
+        <div className="lg:col-span-7 space-y-6">
+          <h3 className="text-lg font-bold font-heading text-slate-200">Active Crop Logs</h3>
+          
+          <div className="space-y-4">
+            {crops.map((crop) => {
+              const days = getDaysElapsed(crop.sownDate);
+              const remaining = Math.max(0, crop.durationDays - days);
+              return (
+                <div key={crop.id} className="glass-panel p-6 rounded-2xl border border-green-500/10 card-3d relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/5 rounded-full blur-3xl pointer-events-none"></div>
+                  
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h4 className="text-lg font-bold text-slate-200">{crop.name}</h4>
+                      <p className="text-xs text-green-400/90 font-mono mt-0.5">{crop.variety}</p>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-green-400 bg-green-500/10 border border-green-500/20 px-2.5 py-1 rounded-md">
+                      {crop.stage}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4 mb-4 text-xs font-mono">
+                    <div className="bg-slate-950/40 border border-green-500/5 p-2 rounded-xl text-center">
+                      <span className="block text-slate-500 text-[10px]">SOWN DATE</span>
+                      <span className="text-slate-300 font-bold">{crop.sownDate}</span>
+                    </div>
+                    <div className="bg-slate-950/40 border border-green-500/5 p-2 rounded-xl text-center">
+                      <span className="block text-slate-500 text-[10px]">AGE (DAYS)</span>
+                      <span className="text-green-400 font-bold">{days} Days</span>
+                    </div>
+                    <div className="bg-slate-950/40 border border-green-500/5 p-2 rounded-xl text-center">
+                      <span className="block text-slate-500 text-[10px]">EST. HARVEST</span>
+                      <span className="text-amber-400 font-bold">In {remaining} Days</span>
+                    </div>
+                  </div>
+
+                  {/* Growth status bar */}
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between text-xs font-mono">
+                      <span className="text-slate-500">GROWTH MILESTONE</span>
+                      <span className="text-green-400 font-semibold">{crop.progress}% complete</span>
+                    </div>
+                    <div className="w-full bg-slate-900 rounded-full h-3 overflow-hidden border border-slate-800">
+                      <div className="bg-gradient-to-r from-green-600 to-emerald-400 h-full rounded-full shadow-[0_0_12px_rgba(34,197,94,0.4)]" style={{ width: `${crop.progress}%` }}></div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Col: Add Crop Form (5 columns) */}
+        <div className="lg:col-span-5">
+          <div className="glass-panel p-6 rounded-2xl border border-green-500/20 card-3d flex flex-col">
+            <h3 className="text-lg font-bold font-heading text-slate-200 flex items-center gap-2 mb-4">
+              <Plus className="w-5 h-5 text-green-400" />
+              <span>Sow New Crop Track</span>
+            </h3>
+
+            <form onSubmit={handleSubmit(onAddCrop)} className="space-y-4">
+              {/* Crop Type Input */}
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase tracking-widest">Crop Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Maize, Chilli, Groundnut"
+                  {...register("name", { required: true })}
+                  className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3 text-sm font-sans text-white outline-none transition-all"
+                />
+              </div>
+
+              {/* Seed Variety */}
+              <div>
+                <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase tracking-widest">Seed Variety</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Hybrid Premium R-22"
+                  {...register("variety")}
+                  className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3 text-sm font-sans text-white outline-none transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                {/* Sown Date */}
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase tracking-widest">Sown Date</label>
+                  <input
+                    type="date"
+                    {...register("sownDate", { required: true })}
+                    className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-3 py-3 text-sm font-sans text-white outline-none transition-all"
+                  />
+                </div>
+
+                {/* Duration */}
+                <div>
+                  <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase tracking-widest">Duration (Days)</label>
+                  <input
+                    type="number"
+                    defaultValue="120"
+                    {...register("durationDays", { required: true })}
+                    className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-3 py-3 text-sm font-sans text-white outline-none transition-all"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-4 py-3.5 px-4 bg-green-600 hover:bg-green-500 text-slate-900 font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 border border-green-400 shadow-[0_4px_20px_rgba(34,197,94,0.25)] glow-btn"
+              >
+                <span>Initiate Lifecycle Tracker</span>
+              </button>
+            </form>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  );
+};

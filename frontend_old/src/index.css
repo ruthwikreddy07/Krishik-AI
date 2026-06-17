@@ -1,0 +1,49 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Telugu:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+/* Tailwind CSS v4 */
+@import "tailwindcss";
+
+/* Krushi Design System */
+@import "./design/krushi-system.css";
+
+/* ── Tailwind v4 Custom Theme ────────────────────────────────── */
+@theme {
+  /* Colors */
+  --color-krushi-green: #0F6E56;
+  --color-krushi-green-light: #1D9E75;
+  --color-krushi-green-pale: #E1F5EE;
+  --color-krushi-green-dark: #0A4F3D;
+
+  --color-krushi-amber: #BA7517;
+  --color-krushi-amber-light: #FAEEDA;
+  --color-krushi-amber-dark: #8A5710;
+
+  --color-krushi-earth: #7C5C3A;
+  --color-krushi-earth-light: #A68560;
+  --color-krushi-earth-pale: #F5EDE3;
+
+  --color-krushi-sky: #185FA5;
+  --color-krushi-sky-light: #E8F0FE;
+  --color-krushi-sky-dark: #0E3F6E;
+
+  --color-krushi-bg: #F7F9F5;
+  --color-krushi-card: #FFFFFF;
+  --color-krushi-text: #1A1A1A;
+  --color-krushi-muted: #6B7280;
+
+  --color-krushi-danger: #DC2626;
+  --color-krushi-danger-light: #FEE2E2;
+  --color-krushi-success: #16A34A;
+  --color-krushi-success-light: #DCFCE7;
+
+  /* Font families */
+  --font-sans: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-telugu: 'Noto Sans Telugu', 'Mandali', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px rgba(15, 110, 86, 0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-card-hover: 0 4px 12px rgba(15, 110, 86, 0.12), 0 2px 4px rgba(0,0,0,0.06);
+  --shadow-modal: 0 20px 60px rgba(0,0,0,0.15), 0 8px 20px rgba(0,0,0,0.1);
+  --shadow-glow: 0 0 20px rgba(15, 110, 86, 0.25);
+}

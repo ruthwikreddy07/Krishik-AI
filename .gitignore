@@ -1,0 +1,38 @@
+# Farmer Assistant — Byte compiled / cache / venv / models
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Uploaded images
+uploads/
+
+# Trained ML models (large binaries)
+ml_models/
+
+# Datasets & Temp Files (large files — download from Kaggle)
+ml_training/datasets/*.csv
+ml_training/datasets/PlantVillage/
+check_results.txt
+*.log
+
+# Environment files
+.env
+
+# Frontend (React / Vite)
+node_modules/
+dist/
+dist-ssr/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
+pyrightconfig.json

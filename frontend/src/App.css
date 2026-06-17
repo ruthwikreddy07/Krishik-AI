@@ -1,1 +1,6 @@
-/* App.css cleared for Tailwind CSS v4 custom styling */
+/* App.css — Reset (all styles live in index.css) */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}

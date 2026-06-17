@@ -27,17 +27,17 @@ const ProtectedLayout = ({ children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-[#050b07] crt-screen text-slate-100 font-sans">
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)' }}>
       {/* Sidebar navigation */}
       <Sidebar />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh', overflowX: 'hidden' }}>
         {/* Navigation Bar */}
         <Navbar />
 
         {/* Dynamic Route Content */}
-        <main className="flex-grow p-8 overflow-y-auto max-h-[calc(100vh-80px)]">
+        <main className="page-fade-in" style={{ flexGrow: 1, padding: '32px', overflowY: 'auto', maxHeight: 'calc(100vh - 64px)' }}>
           {children}
         </main>
       </div>

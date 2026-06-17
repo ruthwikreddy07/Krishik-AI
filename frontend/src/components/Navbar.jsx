@@ -1,6 +1,6 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { AppContext } from '../context/AppContext';
-import { Globe, User, ShieldAlert, Cpu } from 'lucide-react';
+import { Globe, ShieldCheck, Wifi } from 'lucide-react';
 
 export const Navbar = () => {
   const { user, language, setLanguage, t } = useContext(AppContext);
@@ -11,47 +11,67 @@ export const Navbar = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const formatTime = (date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  };
+  const formatTime = (date) =>
+    date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
-  const formatDate = (date) => {
-    return date.toLocaleDateString([], { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
-  };
+  const formatDate = (date) =>
+    date.toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
   return (
-    <header className="glass-panel border-b border-green-500/20 px-8 py-4 flex items-center justify-between sticky top-0 z-30 w-full">
-      {/* System Status Indicators */}
-      <div className="flex items-center gap-6">
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
+    <header className="nav-glass" style={{
+      padding: '0 28px', height: '64px', display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', position: 'sticky', top: 0, zIndex: 30, width: '100%'
+    }}>
+
+      {/* ── Left: Status indicators ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        {/* Live pulse */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <span style={{ position: 'relative', display: 'flex', width: '10px', height: '10px' }}>
+            <span style={{
+              position: 'absolute', display: 'inline-flex', width: '100%', height: '100%',
+              borderRadius: '9999px', background: '#10b981', opacity: 0.6,
+              animation: 'ping 1.5s cubic-bezier(0,0,0.2,1) infinite'
+            }} />
+            <span style={{ position: 'relative', display: 'inline-flex', borderRadius: '9999px', width: '10px', height: '10px', background: '#10b981' }} />
           </span>
-          <span className="text-xs font-mono text-green-400/90 glow-text-green uppercase tracking-wider">System: Online</span>
-        </div>
-        
-        <div className="hidden md:flex items-center gap-2 text-xs font-mono text-slate-500">
-          <Cpu className="w-3.5 h-3.5 text-blue-400" />
-          <span>API: Connected</span>
+          <span style={{ fontSize: '11px', fontWeight: 600, color: '#10b981', letterSpacing: '0.08em', textTransform: 'uppercase', fontFamily: 'monospace' }}>
+            System Online
+          </span>
         </div>
 
-        <div className="hidden lg:flex items-center gap-2 text-xs font-mono text-slate-500">
-          <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
-          <span>Security: Active</span>
+        <div style={{ display: 'none' }} className="md:flex" >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <Wifi style={{ width: '13px', height: '13px', color: '#38bdf8' }} />
+            <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>API Connected</span>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <ShieldCheck style={{ width: '13px', height: '13px', color: '#a78bfa' }} />
+          <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>Secured</span>
         </div>
       </div>
 
-      {/* Date, Language Selector & Profile */}
-      <div className="flex items-center gap-6">
-        {/* DateTime Display */}
-        <div className="hidden sm:flex flex-col items-end text-xs font-mono">
-          <span className="text-slate-300 font-semibold">{formatTime(time)}</span>
-          <span className="text-slate-500 text-[10px]">{formatDate(time)}</span>
+      {/* ── Right: Time, Language, User ── */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+
+        {/* DateTime */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+          <span style={{ fontSize: '13px', fontWeight: 700, color: '#ffffff', fontFamily: 'monospace', lineHeight: 1 }}>
+            {formatTime(time)}
+          </span>
+          <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'monospace', marginTop: '2px' }}>
+            {formatDate(time)}
+          </span>
         </div>
 
-        {/* Language Toggles */}
-        <div className="flex items-center gap-1 bg-green-950/40 p-0.5 rounded-lg border border-green-500/20">
+        {/* Language Switcher */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '2px',
+          background: 'rgba(16,185,129,0.05)', padding: '3px',
+          borderRadius: '8px', border: '1px solid var(--border-subtle)'
+        }}>
           {[
             { code: 'te', label: 'తెలుగు' },
             { code: 'en', label: 'EN' },
@@ -60,13 +80,14 @@ export const Navbar = () => {
             <button
               key={lang.code}
               onClick={() => setLanguage(lang.code)}
-              className={`
-                px-2.5 py-1 text-xs font-semibold rounded-md transition-all duration-300
-                ${language === lang.code 
-                  ? 'bg-green-500/20 text-green-300 border border-green-500/30' 
-                  : 'text-slate-500 hover:text-slate-300'
-                }
-              `}
+              style={{
+                padding: '4px 10px', fontSize: '11px', fontWeight: 600,
+                borderRadius: '6px', border: 'none', cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                background: language === lang.code ? 'rgba(16,185,129,0.2)' : 'transparent',
+                color: language === lang.code ? '#10b981' : 'var(--text-muted)',
+                outline: language === lang.code ? '1px solid rgba(16,185,129,0.3)' : 'none',
+              }}
             >
               {lang.label}
             </button>
@@ -75,13 +96,23 @@ export const Navbar = () => {
 
         {/* User Card */}
         {user && (
-          <div className="flex items-center gap-3 pl-4 border-l border-green-500/10">
-            <div className="flex flex-col items-end">
-              <span className="text-sm font-semibold text-slate-200">{user.name || "Telangana Farmer"}</span>
-              <span className="text-[10px] text-green-500/70 font-mono">{user.phone}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', paddingLeft: '16px', borderLeft: '1px solid var(--border-subtle)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+                {user.name || 'Farmer'}
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
+                {user.village || user.phone}
+              </span>
             </div>
-            <div className="w-9 h-9 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center shadow-[0_0_10px_rgba(34,197,94,0.15)]">
-              <User className="w-5 h-5 text-green-400" />
+            <div style={{
+              width: '34px', height: '34px', borderRadius: '50%',
+              background: 'rgba(16,185,129,0.12)', border: '1px solid rgba(16,185,129,0.3)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              fontSize: '14px', fontWeight: 700, color: '#10b981',
+              fontFamily: 'var(--font-heading)'
+            }}>
+              {(user.name || 'F').charAt(0).toUpperCase()}
             </div>
           </div>
         )}

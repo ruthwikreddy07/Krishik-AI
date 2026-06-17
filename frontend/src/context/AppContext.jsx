@@ -9,7 +9,7 @@ export const AppProvider = ({ children }) => {
   });
   
   const [token, setToken] = useState(() => localStorage.getItem('farmer_token') || null);
-  const [language, setLanguageState] = useState(() => localStorage.getItem('farmer_lang') || 'te'); // Default to Telugu
+  const [language, setLanguageState] = useState(() => localStorage.getItem('farmer_lang') || 'en'); // Default to English
   const [theme, setThemeState] = useState(() => localStorage.getItem('farmer_theme') || 'dark');
 
   // Handle language updates

@@ -398,3 +398,26 @@
 .animate-ping  { animation: ping 1.5s cubic-bezier(0,0,0.2,1) infinite; }
 .animate-pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
 .animate-spin  { animation: spin 1s linear infinite; }
+
+/* Sandbox scanning laser animation */
+@keyframes laser-scan {
+  0% { top: 0%; opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-laser {
+  animation: laser-scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Audio wave keyframes for weather advisory playback */
+@keyframes wave-bar-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+.animate-audio-bar {
+  animation: wave-bar-bounce 0.8s ease-in-out infinite;
+}
+

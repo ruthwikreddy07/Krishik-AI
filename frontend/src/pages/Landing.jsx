@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { sendOtp, verifyOtp, registerFarmer } from '../services/api';
@@ -6,7 +6,8 @@ import { toast } from 'react-toastify';
 import {
   Sprout, Phone, ShieldCheck, ArrowRight, Sparkles,
   CloudSun, ScanLine, TrendingUp, FileText, MessageSquare,
-  ChevronRight, Star, ExternalLink, UserPlus, CheckCircle2, AlertCircle
+  ChevronRight, Star, ExternalLink, UserPlus, CheckCircle2, AlertCircle,
+  Volume2
 } from 'lucide-react';
 import heroVisual from '../assets/hero-visual.png';
 
@@ -38,6 +39,27 @@ const localT = {
     wantToExplore: "Want to explore first?",
     sending: "Sending OTP...",
     verifying: "Verifying...",
+    sandboxTitle: "Interactive AI Playgrounds",
+    sandboxDesc: "Interact directly with our model simulations. Test crop disease detection, live mandi price charts, and weather voice advisories instantly.",
+    sandboxTabDisease: "AI Disease Scan",
+    sandboxTabMarket: "Mandi Price Chart",
+    sandboxTabWeather: "Weather Voice Broadcast",
+    sandboxDiseaseSub: "Select a sample leaf to run our visual classifier model:",
+    sandboxDiseaseBtn: "Run AI Diagnosis",
+    sandboxDiseaseScan: "Scanning plant leaf...",
+    sandboxDiseaseResult: "Diagnostic Result",
+    sandboxDiseaseConf: "Match Confidence",
+    sandboxDiseaseRemedy: "Remedy & Action Guidelines",
+    sandboxMarketSub: "Select a crop to visualize daily market prices & forecasts:",
+    sandboxMarketMandi: "Warangal Mandi Yard",
+    sandboxMarketPrice: "Spot Price",
+    sandboxMarketTrend: "7-Day Price Curve",
+    sandboxMarketAdvice: "ML Forecast Action",
+    sandboxWeatherSub: "Hyperlocal weather broadcast simulation for Nalgonda district:",
+    sandboxWeatherAlert: "Rain Alert: Postpone fertilizing and prepare drainage lines.",
+    sandboxWeatherPlay: "Play Voice Advisory",
+    sandboxWeatherPlaying: "Playing Telugu Broadcast Advisory...",
+    sandboxWeatherReady: "Ready to Broadcast"
   },
   te: {
     heroSub: "స్మార్ట్ వ్యవసాయం",
@@ -66,6 +88,27 @@ const localT = {
     wantToExplore: "ముందుగా పరిశీలించాలనుకుంటున్నారా?",
     sending: "OTP పంపుతోంది...",
     verifying: "ధృవీకరిస్తోంది...",
+    sandboxTitle: "ఇంటరాక్టివ్ AI ప్లేగ్రౌండ్స్",
+    sandboxDesc: "మా AI మోడల్స్ పనితీరును నేరుగా ఇక్కడ పరీక్షించండి. ఆకు తెగుళ్ళ గుర్తింపు, మార్కెట్ ధరల గ్రాఫ్‌లు మరియు వాతావరణ వాయిస్ హెచ్చరికలను ఉపయోగించండి.",
+    sandboxTabDisease: "తెగుళ్ళ గుర్తింపు",
+    sandboxTabMarket: "ధరల విశ్లేషణ",
+    sandboxTabWeather: "వాతావరణ వాయిస్ హెచ్చరిక",
+    sandboxDiseaseSub: "స్మార్ట్ క్లాసిఫైయర్ పరీక్షించుటకు పంట ఆకును ఎంపిక చేయండి:",
+    sandboxDiseaseBtn: "AI నిర్ధారణ రన్ చేయండి",
+    sandboxDiseaseScan: "ఆకును స్కాన్ చేస్తోంది...",
+    sandboxDiseaseResult: "పంట తెగులు నిర్ధారణ",
+    sandboxDiseaseConf: "ఖచ్చితత్వ శాతం",
+    sandboxDiseaseRemedy: "నివారణ మరియు నివారణ మార్గదర్శకాలు",
+    sandboxMarketSub: "ధరల ట్రెండ్‌లు కనుగొనుటకు పంటను ఎంపిక చేయండి:",
+    sandboxMarketMandi: "వరంగల్ మార్కెట్ యార్డ్",
+    sandboxMarketPrice: "ప్రస్తుత క్వింటాల్ ధర",
+    sandboxMarketTrend: "7 రోజుల ధరల వ్యత్యాసం",
+    sandboxMarketAdvice: "ML విక్రయ సలహా",
+    sandboxWeatherSub: "నల్గొండ జిల్లాకు సంబంధించిన వాతావరణ సలహా బ్రాడ్‌కాస్ట్:",
+    sandboxWeatherAlert: "వర్షం సూచన ఉంది: ఎరువులు చల్లడం వాయిదా వేయండి మరియు కాలువలు సిద్ధం చేయండి.",
+    sandboxWeatherPlay: "వాయిస్ సలహా వినండి",
+    sandboxWeatherPlaying: "తెలుగు వాయిస్ బ్రాడ్‌కాస్ట్ నడుస్తోంది...",
+    sandboxWeatherReady: "బ్రాడ్‌కాస్ట్ సిద్ధంగా ఉంది"
   }
 };
 
@@ -86,6 +129,150 @@ export const Landing = () => {
     name: '', village: '', mandal: 'Nalgonda', district: 'Nalgonda',
     land_size_acres: '', soil_type: 'Red Sandy', water_source: 'Borewell',
   });
+
+  // Sandbox state variables
+  const [sandboxTab, setSandboxTab] = useState('disease'); // 'disease' | 'market' | 'weather'
+  
+  // Disease Classifier Sandbox states
+  const [selectedSandboxLeaf, setSelectedSandboxLeaf] = useState('paddy'); // 'paddy' | 'cotton' | 'chilli'
+  const [isSandboxScanning, setIsSandboxScanning] = useState(false);
+  const [sandboxScanDone, setSandboxScanDone] = useState(false);
+
+  // Market Sandbox states
+  const [selectedSandboxCrop, setSelectedSandboxCrop] = useState('rice'); // 'rice' | 'cotton' | 'turmeric'
+
+  // Weather Sandbox states
+  const [isSandboxAudioPlaying, setIsSandboxAudioPlaying] = useState(false);
+
+  // Weather voice broadcast using Web Speech API (window.speechSynthesis)
+  const handlePlayVoice = () => {
+    if (isSandboxAudioPlaying) {
+      window.speechSynthesis.cancel();
+      setIsSandboxAudioPlaying(false);
+    } else {
+      setIsSandboxAudioPlaying(true);
+      
+      const textToSpeak = language === 'te'
+        ? "నల్గొండ జిల్లా వాతావరణ హెచ్చరిక. రాబోయే రెండు రోజుల్లో భారీ వర్షాలు కురిసే అవకాశం ఉంది. దయచేసి ఎరువులు చల్లడం వాయిదా వేయండి మరియు పంట కాలువలు సిద్ధం చేసుకోండి."
+        : "Nalgonda district weather warning: Heavy rainfall is expected in the next two days. Please postpone fertilizer application and prepare crop drainage lines.";
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak);
+      
+      // Select language code
+      utterance.lang = language === 'te' ? 'te-IN' : 'en-IN';
+
+      utterance.onend = () => {
+        setIsSandboxAudioPlaying(false);
+      };
+
+      utterance.onerror = () => {
+        setIsSandboxAudioPlaying(false);
+      };
+
+      window.speechSynthesis.cancel(); // Stop any currently playing speech
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
+  // Clean up speech synthesis on component unmount
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
+  const handleSandboxScan = () => {
+    setIsSandboxScanning(true);
+    setSandboxScanDone(false);
+    setTimeout(() => {
+      setIsSandboxScanning(false);
+      setSandboxScanDone(true);
+    }, 2000);
+  };
+
+  const handleSandboxLeafChange = (leaf) => {
+    setSelectedSandboxLeaf(leaf);
+    setSandboxScanDone(false);
+    setIsSandboxScanning(false);
+  };
+
+  // Fresh visual data for the leaf classifier sandbox
+  const sandboxLeafInfo = {
+    paddy: {
+      nameEn: "Rice Blast (Paddy)",
+      nameTe: "వరి అగ్గి తెగులు",
+      confidence: "98.7%",
+      remedyEn: "Apply Tricyclazole 75 WP @ 0.6 grams per liter of water. Ensure proper field drainage.",
+      remedyTe: "లీటరు నీటికి ట్రైసైక్లాజోల్ 75 WP @ 0.6 గ్రా చొప్పున పిచికారీ చేయండి. సరైన నీటి పారుదల సౌకర్యం కల్పించండి.",
+      color: "#10b981", // Emerald
+      spots: [
+        { cx: 40, cy: 30, rx: 8, ry: 4, rot: 15 },
+        { cx: 60, cy: 55, rx: 12, ry: 5, rot: -20 },
+        { cx: 45, cy: 75, rx: 9, ry: 4, rot: 10 }
+      ]
+    },
+    cotton: {
+      nameEn: "Cotton Leaf Curl Virus",
+      nameTe: "పత్తి ఆకు ముడుత తెగులు",
+      confidence: "96.4%",
+      remedyEn: "Spray Diafenthiuron 50 WP @ 1.2 grams per liter. Control sucking pests like whiteflies.",
+      remedyTe: "లీటరు నీటికి డయాఫెంథియురాన్ 50 WP @ 1.2 గ్రా పిచికారీ చేయండి. తెల్ల దోమల నివారణకు చర్యలు తీసుకోండి.",
+      color: "#0ea5e9", // Sky
+      spots: [
+        { cx: 35, cy: 45, rx: 10, ry: 6, rot: -30 },
+        { cx: 65, cy: 35, rx: 8, ry: 5, rot: 45 },
+        { cx: 50, cy: 70, rx: 11, ry: 7, rot: 10 }
+      ]
+    },
+    chilli: {
+      nameEn: "Chilli Powdery Mildew",
+      nameTe: "మిరప బూడిద తెగులు",
+      confidence: "95.2%",
+      remedyEn: "Spray Wettable Sulphur @ 3 grams per liter or Hexaconazole 5 EC @ 2 ml per liter.",
+      remedyTe: "లీటరు నీటికి వెటబుల్ సల్ఫర్ @ 3 గ్రా లేదా హెక్సాకోనాజోల్ 5 EC @ 2 ml చొప్పున పిచికారీ చేయండి.",
+      color: "#f43f5e", // Rose
+      spots: [
+        { cx: 50, cy: 25, rx: 5, ry: 5, rot: 0 },
+        { cx: 35, cy: 50, rx: 7, ry: 7, rot: 15 },
+        { cx: 60, cy: 65, rx: 6, ry: 6, rot: -10 }
+      ]
+    }
+  };
+
+  // Fresh data for Mandi Price trend graph
+  const sandboxMarketInfo = {
+    rice: {
+      nameEn: "Paddy (Grade A)",
+      nameTe: "వరి (గ్రేడ్ A)",
+      price: 2320,
+      change: "+₹85 (3.8%)",
+      trend: "up",
+      forecastEn: "Hold stocks. Prices expected to rise further due to high export demands.",
+      forecastTe: "నిల్వ ఉంచుకోగలరు. ఎగుమతుల గిరాకీ కారణంగా ధరలు మరింత పెరిగే అవకాశం ఉంది.",
+      history: [2150, 2180, 2210, 2200, 2240, 2270, 2320]
+    },
+    cotton: {
+      nameEn: "Cotton (J-34)",
+      nameTe: "పత్తి (J-34)",
+      price: 7560,
+      change: "-₹140 (-1.8%)",
+      trend: "down",
+      forecastEn: "Sell soon. High arrivals in neighboring mandis may lower local prices.",
+      forecastTe: "వెంటనే విక్రయించండి. పొరుగు మార్కెట్లకు పంట రాక ఎక్కువగా ఉండటంతో ధరలు తగ్గే అవకాశం ఉంది.",
+      history: [7800, 7750, 7710, 7680, 7640, 7600, 7560]
+    },
+    turmeric: {
+      nameEn: "Turmeric (Guntur)",
+      nameTe: "పసుపు (గుంటూరు)",
+      price: 11800,
+      change: "+₹450 (3.9%)",
+      trend: "up",
+      forecastEn: "Hold for 5 days. Price peak approaching before stabilizing.",
+      forecastTe: "5 రోజులు వేచి ఉండండి. స్థిరపడే ముందు గరిష్ట ధర లభించే అవకాశం ఉంది.",
+      history: [10800, 11000, 11150, 11400, 11300, 11550, 11800]
+    }
+  };
+
 
   const handleSendOtp = async (e) => {
     e.preventDefault();
@@ -466,6 +653,495 @@ export const Landing = () => {
               </React.Fragment>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ===================== LIVE INTERACTIVE PLAYGROUNDS ===================== */}
+      <section style={{ padding: '100px 0', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}>
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          
+          {/* Section header */}
+          <div className="text-center space-y-4 mb-12">
+            <div className="flex justify-center">
+              <span className="pill-section" style={{ borderColor: 'rgba(16,185,129,0.4)', background: 'rgba(16,185,129,0.1)', color: '#10b981' }}>
+                💡 {lt.sandboxTitle}
+              </span>
+            </div>
+            <h2 className="section-heading text-center" style={{ fontSize: 'clamp(32px, 5vw, 44px)' }}>
+              {lt.sandboxTitle}
+            </h2>
+            <p className="section-subtext text-center mx-auto" style={{ maxWidth: '650px' }}>
+              {lt.sandboxDesc}
+            </p>
+          </div>
+
+          {/* Tab switches */}
+          <div className="flex flex-wrap justify-center gap-3 mb-10">
+            {[
+              { id: 'disease', label: lt.sandboxTabDisease, icon: ScanLine },
+              { id: 'market', label: lt.sandboxTabMarket, icon: TrendingUp },
+              { id: 'weather', label: lt.sandboxTabWeather, icon: CloudSun }
+            ].map(tab => {
+              const TabIcon = tab.icon;
+              const isActive = sandboxTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setSandboxTab(tab.id)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '12px 24px',
+                    borderRadius: '12px',
+                    fontSize: '14px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.02)',
+                    border: isActive ? '1px solid #10b981' : '1px solid var(--border-card)',
+                    color: isActive ? '#10b981' : 'var(--text-secondary)'
+                  }}
+                  onMouseEnter={e => {
+                    if (!isActive) {
+                      e.target.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+                      e.target.style.color = '#ffffff';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!isActive) {
+                      e.target.style.borderColor = 'var(--border-card)';
+                      e.target.style.color = 'var(--text-secondary)';
+                    }
+                  }}
+                >
+                  <TabIcon style={{ width: '16px', height: '16px' }} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Sandbox content area */}
+          <div className="glass-card" style={{ padding: '40px', background: 'var(--bg-card)' }}>
+            {sandboxTab === 'disease' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Left: Interactive Controls */}
+                <div className="space-y-6">
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 850, fontSize: '24px', color: '#ffffff' }}>
+                    {lt.sandboxTabDisease}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    {lt.sandboxDiseaseSub}
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'paddy', label: language === 'te' ? 'వరి (Paddy)' : 'Paddy Leaf', emoji: '🌾' },
+                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton Leaf', emoji: '☁️' },
+                      { id: 'chilli', label: language === 'te' ? 'మిరప (Chilli)' : 'Chilli Leaf', emoji: '🌶️' }
+                    ].map(leaf => (
+                      <button
+                        key={leaf.id}
+                        onClick={() => handleSandboxLeafChange(leaf.id)}
+                        disabled={isSandboxScanning}
+                        style={{
+                          padding: '16px 12px',
+                          borderRadius: '12px',
+                          border: selectedSandboxLeaf === leaf.id ? '2px solid #10b981' : '1px solid var(--border-card)',
+                          background: selectedSandboxLeaf === leaf.id ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)',
+                          color: selectedSandboxLeaf === leaf.id ? '#10b981' : 'var(--text-secondary)',
+                          cursor: isSandboxScanning ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontWeight: 700,
+                          fontSize: '13px'
+                        }}
+                      >
+                        <span style={{ fontSize: '24px' }}>{leaf.emoji}</span>
+                        <span>{leaf.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleSandboxScan}
+                    disabled={isSandboxScanning}
+                    className="btn-primary w-full justify-center"
+                    style={{ marginTop: '12px' }}
+                  >
+                    {isSandboxScanning ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>{lt.sandboxDiseaseScan}</span>
+                      </>
+                    ) : (
+                      <>
+                        <ScanLine className="w-4 h-4" />
+                        <span>{lt.sandboxDiseaseBtn}</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {/* Right: Diagnostic Monitor Viewport */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  <div
+                    style={{
+                      aspectRatio: '1.8 / 1',
+                      borderRadius: '16px',
+                      background: '#040d06',
+                      border: '1px solid rgba(16,185,129,0.15)',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
+                  >
+                    {/* Simulated leaf SVG view */}
+                    <div style={{ position: 'relative', width: '100px', height: '100px' }}>
+                      <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%', fill: sandboxLeafInfo[selectedSandboxLeaf].color, opacity: 0.35, transition: 'all 0.3s' }}>
+                        <path d="M50 0 C 15 25, 20 75, 50 100 C 80 75, 85 25, 50 0 Z" />
+                      </svg>
+                      {/* Leaf spots */}
+                      <svg viewBox="0 0 100 100" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', fill: '#7c2d12', opacity: 0.75 }}>
+                        {sandboxLeafInfo[selectedSandboxLeaf].spots.map((spot, i) => (
+                          <ellipse
+                            key={i}
+                            cx={spot.cx}
+                            cy={spot.cy}
+                            rx={spot.rx * 0.7}
+                            ry={spot.ry * 0.7}
+                            transform={`rotate(${spot.rot} ${spot.cx} ${spot.cy})`}
+                          />
+                        ))}
+                      </svg>
+                    </div>
+
+                    {/* Laser scan animation overlay */}
+                    {isSandboxScanning && (
+                      <div
+                        className="animate-laser"
+                        style={{
+                          position: 'absolute',
+                          left: 0,
+                          right: 0,
+                          height: '2px',
+                          background: '#10b981',
+                          boxShadow: '0 0 12px 3px rgba(16,185,129,0.85)',
+                          pointerEvents: 'none'
+                        }}
+                      />
+                    )}
+
+                    {/* Initial status indicator */}
+                    {!isSandboxScanning && !sandboxScanDone && (
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                          Sensor Offline — Awaiting Scan
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Diagnosis Report Card */}
+                  {sandboxScanDone && !isSandboxScanning && (
+                    <div
+                      style={{
+                        background: 'rgba(255,255,255,0.02)',
+                        border: '1px solid var(--border-card)',
+                        borderRadius: '12px',
+                        padding: '20px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start' }}>
+                        <div>
+                          <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {lt.sandboxDiseaseResult}:
+                          </span>
+                          <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '18px', color: '#10b981', marginTop: '4px' }}>
+                            {language === 'te' ? sandboxLeafInfo[selectedSandboxLeaf].nameTe : sandboxLeafInfo[selectedSandboxLeaf].nameEn}
+                          </h4>
+                        </div>
+                        <div style={{ textAlign: 'right' }}>
+                          <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            {lt.sandboxDiseaseConf}:
+                          </span>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 800, fontSize: '18px', color: '#10b981', display: 'block', marginTop: '4px' }}>
+                            {sandboxLeafInfo[selectedSandboxLeaf].confidence}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '10px' }}>
+                        <span style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#fbbf24', marginBottom: '4px' }}>
+                          🛡️ {lt.sandboxDiseaseRemedy}:
+                        </span>
+                        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                          {language === 'te' ? sandboxLeafInfo[selectedSandboxLeaf].remedyTe : sandboxLeafInfo[selectedSandboxLeaf].remedyEn}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {sandboxTab === 'market' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Left Controls */}
+                <div className="space-y-6">
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 850, fontSize: '24px', color: '#ffffff' }}>
+                    {lt.sandboxTabMarket}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    {lt.sandboxMarketSub}
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { id: 'rice', label: language === 'te' ? 'వరి (Rice)' : 'Paddy', emoji: '🌾' },
+                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton', emoji: '☁️' },
+                      { id: 'turmeric', label: language === 'te' ? 'పసుపు (Turmeric)' : 'Turmeric', emoji: '🌿' }
+                    ].map(crop => (
+                      <button
+                        key={crop.id}
+                        onClick={() => setSelectedSandboxCrop(crop.id)}
+                        style={{
+                          padding: '16px 12px',
+                          borderRadius: '12px',
+                          border: selectedSandboxCrop === crop.id ? '2px solid #fbbf24' : '1px solid var(--border-card)',
+                          background: selectedSandboxCrop === crop.id ? 'rgba(251, 191, 36, 0.08)' : 'rgba(255,255,255,0.02)',
+                          color: selectedSandboxCrop === crop.id ? '#fbbf24' : 'var(--text-secondary)',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontWeight: 700,
+                          fontSize: '13px'
+                        }}
+                      >
+                        <span style={{ fontSize: '24px' }}>{crop.emoji}</span>
+                        <span>{crop.label}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div style={{ background: 'rgba(251, 191, 36, 0.05)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#fbbf24' }}>
+                      📈 {lt.sandboxMarketAdvice}:
+                    </span>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {language === 'te' ? sandboxMarketInfo[selectedSandboxCrop].forecastTe : sandboxMarketInfo[selectedSandboxCrop].forecastEn}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Visualizer */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Prices Banner */}
+                  <div style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-card)', borderRadius: '12px', padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {lt.sandboxMarketMandi}
+                      </span>
+                      <h4 style={{ fontFamily: 'var(--font-heading)', fontWeight: 800, fontSize: '18px', color: '#ffffff', marginTop: '4px' }}>
+                        {language === 'te' ? sandboxMarketInfo[selectedSandboxCrop].nameTe : sandboxMarketInfo[selectedSandboxCrop].nameEn}
+                      </h4>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ display: 'block', fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {lt.sandboxMarketPrice}:
+                      </span>
+                      <span style={{ display: 'block', fontFamily: 'monospace', fontWeight: 900, fontSize: '20px', color: '#ffffff', marginTop: '4px' }}>
+                        ₹{sandboxMarketInfo[selectedSandboxCrop].price.toLocaleString()}/q
+                      </span>
+                      <span style={{ fontSize: '11px', fontWeight: 700, color: sandboxMarketInfo[selectedSandboxCrop].trend === 'up' ? '#10b981' : '#f43f5e', marginTop: '2px', display: 'block' }}>
+                        {sandboxMarketInfo[selectedSandboxCrop].change}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* SVG Chart */}
+                  <div style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid var(--border-card)', borderRadius: '16px', padding: '20px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)' }}>
+                        {lt.sandboxMarketTrend}
+                      </span>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                        11 Jun – 17 Jun
+                      </span>
+                    </div>
+                    
+                    {/* SVG Curve drawing */}
+                    <div style={{ width: '100%', overflow: 'visible' }}>
+                      <svg viewBox="0 0 320 100" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
+                        <defs>
+                          <linearGradient id="chart-glow-grad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25" />
+                            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
+                          </linearGradient>
+                        </defs>
+                        
+                        {/* Grid lines */}
+                        <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                        <line x1="0" y1="50" x2="320" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                        <line x1="0" y1="80" x2="320" y2="80" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+
+                        {/* Graph Path */}
+                        {(() => {
+                          const history = sandboxMarketInfo[selectedSandboxCrop].history;
+                          const min = Math.min(...history);
+                          const max = Math.max(...history);
+                          const range = max - min || 1;
+                          
+                          const points = history.map((val, idx) => {
+                            const x = (idx * 320) / (history.length - 1);
+                            const y = 80 - ((val - min) * 60) / range;
+                            return { x, y };
+                          });
+
+                          let d = `M ${points[0].x} ${points[0].y}`;
+                          for (let i = 1; i < points.length; i++) {
+                            d += ` L ${points[i].x} ${points[i].y}`;
+                          }
+
+                          let areaD = `${d} L ${points[points.length - 1].x} 80 L ${points[0].x} 80 Z`;
+
+                          return (
+                            <>
+                              <path d={areaD} fill="url(#chart-glow-grad)" style={{ transition: 'all 0.3s' }} />
+                              <path d={d} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'all 0.3s' }} />
+                              {points.map((p, idx) => (
+                                <circle
+                                  key={idx}
+                                  cx={p.x}
+                                  cy={p.y}
+                                  r="3.5"
+                                  fill="#071209"
+                                  stroke="#fbbf24"
+                                  strokeWidth="1.5"
+                                  style={{ transition: 'all 0.3s' }}
+                                />
+                              ))}
+                            </>
+                          );
+                        })()}
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {sandboxTab === 'weather' && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                {/* Left Controls */}
+                <div className="space-y-6">
+                  <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 850, fontSize: '24px', color: '#ffffff' }}>
+                    {lt.sandboxTabWeather}
+                  </h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+                    {lt.sandboxWeatherSub}
+                  </p>
+
+                  <button
+                    onClick={handlePlayVoice}
+                    className="btn-primary w-full justify-center"
+                    style={{
+                      background: isSandboxAudioPlaying ? 'linear-gradient(135deg, #f43f5e, #e11d48)' : 'linear-gradient(135deg, #0284c7, #0369a1)',
+                      boxShadow: isSandboxAudioPlaying ? '0 4px 20px rgba(244,63,94,0.35)' : '0 4px 20px rgba(2,132,199,0.35)'
+                    }}
+                  >
+                    {isSandboxAudioPlaying ? (
+                      <>
+                        <div className="w-2.5 h-2.5 bg-white rounded-full animate-ping" />
+                        <span>Stop Broadcast</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-4 h-4" />
+                        <span>{lt.sandboxWeatherPlay}</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div style={{ background: 'rgba(56, 189, 248, 0.05)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#38bdf8' }}>
+                      📢 Broadcast Status:
+                    </span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#ffffff' }}>
+                      {isSandboxAudioPlaying ? lt.sandboxWeatherPlaying : lt.sandboxWeatherReady}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Visualizer */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Localized message card */}
+                  <div
+                    style={{
+                      background: 'rgba(255,255,255,0.02)',
+                      border: '1px solid var(--border-card)',
+                      borderRadius: '16px',
+                      padding: '24px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      gap: '16px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span className="relative flex h-2.5 w-2.5">
+                        <span className={`absolute inline-flex h-full w-full rounded-full bg-sky-500 opacity-75 ${isSandboxAudioPlaying ? 'animate-ping' : ''}`} />
+                        <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-sky-500" />
+                      </span>
+                      <span style={{ fontSize: '10px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
+                        Hyperlocal Meteorological Center
+                      </span>
+                    </div>
+
+                    <div style={{ fontSize: '42px' }}>🌦️</div>
+
+                    <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600, lineHeight: 1.6 }}>
+                      {lt.sandboxWeatherAlert}
+                    </p>
+
+                    {/* Soundwave equalizer */}
+                    {isSandboxAudioPlaying && (
+                      <div style={{ display: 'flex', alignItems: 'end', gap: '3px', height: '32px', padding: '0 10px', marginTop: '10px' }}>
+                        {[...Array(6)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="animate-audio-bar"
+                            style={{
+                              width: '3px',
+                              background: '#38bdf8',
+                              borderRadius: '2px',
+                              height: '100%',
+                              animationDelay: `${i * 0.12}s`,
+                              animationDuration: `${[0.7, 0.9, 0.6, 0.8, 0.5, 0.75][i]}s`
+                            }}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
         </div>
       </section>
 

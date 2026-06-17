@@ -1,7 +1,6 @@
 -- Seed data for the Farmer Assistant database
 -- Government Schemes (Telangana State + Central)
 
-USE farmer_assistant;
 
 INSERT INTO government_schemes (title, description, eligibility_criteria, benefits, scheme_type) VALUES
 

@@ -1,7 +1,6 @@
 -- MySQL database schema for AI-Powered Personal Farming Assistant
 
-CREATE DATABASE IF NOT EXISTS farmer_assistant;
-USE farmer_assistant;
+
 
 -- 1. Farmers Profile Table
 CREATE TABLE IF NOT EXISTS farmers (

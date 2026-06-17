@@ -13,6 +13,9 @@ _model = None
 
 def _load_model():
     global _model
+    # Guard: skip if already loaded
+    if _model is not None:
+        return
     model_path = settings.YIELD_MODEL_PATH
     if os.path.exists(model_path):
         with open(model_path, "rb") as f:

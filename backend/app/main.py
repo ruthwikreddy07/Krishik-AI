@@ -1,8 +1,10 @@
 import logging
+import os
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat
 from .core.database import check_db_connection, init_db
@@ -43,14 +45,25 @@ app = FastAPI(
 )
 
 # Configure CORS (Cross-Origin Resource Sharing)
-# This permits the frontend (React app) to communicate with this API
+# NOTE: allow_origins=["*"] is incompatible with allow_credentials=True per CORS spec.
+# List explicit origins here. Add your production domain when deploying.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Restrict this in production
+    allow_origins=[
+        "http://localhost:5173",   # Vite dev server
+        "http://localhost:3000",   # Alternative React dev port
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Serve uploaded disease images as static files
+# Accessible at: /uploads/disease_images/<filename>
+_upload_dir = os.path.join(os.getcwd(), "uploads")
+os.makedirs(_upload_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=_upload_dir), name="uploads")
 
 # ── Register all API routers ────────────────────────────────
 app.include_router(auth.router)

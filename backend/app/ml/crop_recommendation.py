@@ -14,8 +14,11 @@ _label_encoder = None
 
 
 def _load_model():
-    """Load the trained Random Forest model and label encoder from disk."""
+    """Load the trained Random Forest model and label encoder from disk. Only loads once."""
     global _model, _label_encoder
+    # Guard: skip if already loaded
+    if _model is not None:
+        return
     model_path = settings.CROP_RECOMMEND_MODEL_PATH
     encoder_path = os.path.join(os.path.dirname(model_path), "crop_label_encoder.pkl")
 

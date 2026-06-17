@@ -4,7 +4,7 @@ No passwords; verification is via OTP sent to the farmer's mobile number.
 """
 import random
 import string
-from datetime import datetime, timedelta
+from datetime import datetime, timezone, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
@@ -88,7 +88,7 @@ def _generate_otp(length: int = 6) -> str:
 
 
 def _create_access_token(farmer_id: int) -> str:
-    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     payload = {"sub": str(farmer_id), "exp": expire}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -129,12 +129,15 @@ def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
 
     otp = _generate_otp()
     farmer.otp_code = otp
-    farmer.otp_expires_at = datetime.utcnow() + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
+    farmer.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
     db.commit()
 
     # TODO: Integrate actual SMS / WhatsApp delivery here
-    # For development, return OTP in response (remove in production!)
-    return {"message": "OTP sent successfully", "otp_dev_only": otp}
+    response = {"message": "OTP sent successfully"}
+    if settings.DEBUG:
+        # Only expose OTP in development mode — NEVER in production!
+        response["otp_dev_only"] = otp
+    return response
 
 
 @router.post("/verify-otp", response_model=TokenResponse)
@@ -147,7 +150,7 @@ def verify_otp(req: VerifyOTPRequest, db: Session = Depends(get_db)):
     if farmer.otp_code != req.otp:
         raise HTTPException(status_code=401, detail="Invalid OTP")
 
-    if farmer.otp_expires_at and farmer.otp_expires_at < datetime.utcnow():
+    if farmer.otp_expires_at and farmer.otp_expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         raise HTTPException(status_code=401, detail="OTP expired. Request a new one.")
 
     # Mark as verified, clear OTP

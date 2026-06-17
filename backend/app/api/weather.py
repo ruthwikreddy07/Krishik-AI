@@ -154,7 +154,71 @@ def _daily_averages_from_hourly(
     return averages
 
 
-# ── Main endpoint ──────────────────────────────────────────
+# ── Standalone endpoint (no DB, just lat/lon) ──────────────
+# IMPORTANT: This route MUST be declared before /{farmer_id} to prevent
+# FastAPI from trying to parse "by-location" as an integer farmer_id.
+
+@router.get("/by-location/", response_model=dict)
+async def get_weather_by_location(
+    lat: float = Query(..., description="Latitude"),
+    lon: float = Query(..., description="Longitude"),
+):
+    """
+    Get weather without needing a farmer_id — useful for the frontend
+    before a farmer's profile is fully set up. Pass lat/lon as query params.
+    Example: /api/weather/by-location/?lat=17.385&lon=78.4867
+    """
+    params = {
+        "latitude": lat,
+        "longitude": lon,
+        "daily": "temperature_2m_max,temperature_2m_min,rain_sum,precipitation_probability_max,wind_speed_10m_max",
+        "hourly": "relative_humidity_2m,soil_temperature_0cm,soil_moisture_0_to_1cm",
+        "timezone": "auto",
+    }
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.get(OPEN_METEO_URL, params=params)
+
+    if resp.status_code != 200:
+        raise HTTPException(status_code=502, detail="Failed to fetch weather data from Open-Meteo")
+
+    data = resp.json()
+    daily = data.get("daily", {})
+    hourly = data.get("hourly", {})
+
+    # Compute daily averages
+    hourly_avgs = _daily_averages_from_hourly(
+        hourly_times=hourly.get("time", []),
+        hourly_humidity=hourly.get("relative_humidity_2m", []),
+        hourly_soil_temp=hourly.get("soil_temperature_0cm", []),
+        hourly_soil_moisture=hourly.get("soil_moisture_0_to_1cm", []),
+    )
+
+    dates = daily.get("time", [])
+    forecast = []
+    for i, date_str in enumerate(dates):
+        avg = hourly_avgs.get(date_str, {"humidity": 0, "soil_temp": 0, "soil_moisture": 0})
+        forecast.append({
+            "date": date_str,
+            "temp_min": daily["temperature_2m_min"][i],
+            "temp_max": daily["temperature_2m_max"][i],
+            "rain_sum_mm": daily.get("rain_sum", [0])[i],
+            "rain_probability_pct": daily.get("precipitation_probability_max", [0])[i],
+            "wind_speed_max_kmh": daily.get("wind_speed_10m_max", [0])[i],
+            "avg_humidity_pct": round(avg["humidity"], 1),
+            "avg_soil_temp_c": round(avg["soil_temp"], 1),
+            "avg_soil_moisture_m3m3": round(avg["soil_moisture"], 4),
+        })
+
+    return {
+        "latitude": lat,
+        "longitude": lon,
+        "timezone": data.get("timezone", "auto"),
+        "forecast_days": forecast,
+    }
+
+
+# ── Main endpoint (farmer GPS-based) ───────────────────────
 
 @router.get("/{farmer_id}", response_model=WeatherResponse)
 async def get_weather(farmer_id: int, db: Session = Depends(get_db)):
@@ -261,64 +325,3 @@ async def get_weather(farmer_id: int, db: Session = Depends(get_db)):
         crop_advisory=crop_advisory,
     )
 
-
-# ── Standalone endpoint (no DB, just lat/lon) ──────────────
-
-@router.get("/by-location/", response_model=dict)
-async def get_weather_by_location(
-    lat: float = Query(..., description="Latitude"),
-    lon: float = Query(..., description="Longitude"),
-):
-    """
-    Get weather without needing a farmer_id — useful for the frontend
-    before a farmer's profile is fully set up. Pass lat/lon as query params.
-    Example: /api/weather/by-location/?lat=17.385&lon=78.4867
-    """
-    params = {
-        "latitude": lat,
-        "longitude": lon,
-        "daily": "temperature_2m_max,temperature_2m_min,rain_sum,precipitation_probability_max,wind_speed_10m_max",
-        "hourly": "relative_humidity_2m,soil_temperature_0cm,soil_moisture_0_to_1cm",
-        "timezone": "auto",
-    }
-
-    async with httpx.AsyncClient(timeout=15.0) as client:
-        resp = await client.get(OPEN_METEO_URL, params=params)
-
-    if resp.status_code != 200:
-        raise HTTPException(status_code=502, detail="Failed to fetch weather data from Open-Meteo")
-
-    data = resp.json()
-    daily = data.get("daily", {})
-    hourly = data.get("hourly", {})
-
-    # Compute daily averages
-    hourly_avgs = _daily_averages_from_hourly(
-        hourly_times=hourly.get("time", []),
-        hourly_humidity=hourly.get("relative_humidity_2m", []),
-        hourly_soil_temp=hourly.get("soil_temperature_0cm", []),
-        hourly_soil_moisture=hourly.get("soil_moisture_0_to_1cm", []),
-    )
-
-    dates = daily.get("time", [])
-    forecast = []
-    for i, date_str in enumerate(dates):
-        avg = hourly_avgs.get(date_str, {"humidity": 0, "soil_temp": 0, "soil_moisture": 0})
-        forecast.append({
-            "date": date_str,
-            "temp_min": daily["temperature_2m_min"][i],
-            "temp_max": daily["temperature_2m_max"][i],
-            "rain_sum_mm": daily.get("rain_sum", [0])[i],
-            "rain_probability_pct": daily.get("precipitation_probability_max", [0])[i],
-            "wind_speed_max_kmh": daily.get("wind_speed_10m_max", [0])[i],
-            "avg_humidity_pct": round(avg["humidity"], 1),
-            "avg_soil_temp_c": round(avg["soil_temp"], 1),
-            "avg_soil_moisture_m3m3": round(avg["soil_moisture"], 4),
-        })
-
-    return {
-        "latitude": lat,
-        "longitude": lon,
-        "timezone": data.get("timezone", "auto"),
-        "forecast_days": forecast,
-    }

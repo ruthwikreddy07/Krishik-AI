@@ -2,10 +2,13 @@
 Disease Detection — CNN inference module.
 Accepts a crop leaf image path and returns the predicted disease + treatment.
 """
+import logging
 import os
 import numpy as np
 from PIL import Image
 from ..core.config import settings
+
+logger = logging.getLogger("farmer_assistant")
 
 
 # Global model reference (lazy-loaded)
@@ -47,8 +50,11 @@ _disease_classes = None
 
 
 def _load_model():
-    """Load the trained CNN model (TensorFlow/Keras .h5 file)."""
+    """Load the trained CNN model (TensorFlow/Keras .h5 file). Only loads once."""
     global _model, _disease_classes
+    # Guard: skip if already loaded (or already tried and failed)
+    if _model is not None:
+        return
     model_path = settings.DISEASE_MODEL_PATH
     class_mapping_path = os.path.join(os.path.dirname(model_path), "disease_classes.json")
 
@@ -64,6 +70,7 @@ def _load_model():
                     # Convert to sorted list of class names based on keys
                     _disease_classes = [mapping[str(i)] for i in range(len(mapping))]
         except Exception:
+            logger.exception("Failed to load disease detection model from %s:", model_path)
             _model = None
     else:
         _model = None
@@ -86,7 +93,9 @@ def detect_disease(image_path: str) -> dict:
         return _fallback_detection(image_path)
 
     # Preprocess the image
-    img = Image.open(image_path).resize(IMG_SIZE)
+    # Convert to RGB to handle RGBA (PNG), grayscale, and other modes.
+    # The CNN expects exactly 3 channels — RGBA would cause a shape mismatch.
+    img = Image.open(image_path).convert("RGB").resize(IMG_SIZE)
     img_array = np.array(img) / 255.0  # Normalize to [0, 1]
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
 

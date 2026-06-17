@@ -60,6 +60,14 @@ async def detect_crop_disease(
     if not farmer:
         raise HTTPException(status_code=404, detail="Farmer not found")
 
+    # Validate file type (only allow image formats)
+    allowed_types = {"image/jpeg", "image/png", "image/webp", "image/jpg"}
+    if image.content_type not in allowed_types:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid file type '{image.content_type}'. Only JPEG, PNG, and WebP images are accepted.",
+        )
+
     # Save uploaded image
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
     file_ext = os.path.splitext(image.filename)[1] if image.filename else ".jpg"
@@ -73,11 +81,15 @@ async def detect_crop_disease(
     # Run ML inference
     result = detect_disease(filepath)
 
+    # Build a web-accessible URL path for the stored image
+    # The /uploads static mount in main.py serves this directory.
+    image_url_path = f"/uploads/disease_images/{filename}"
+
     # Save record to database
     record = DiseaseRecord(
         farmer_id=farmer_id,
         crop_id=crop_id,
-        image_url=filepath,
+        image_url=image_url_path,
         detected_disease=result["disease_name"],
         confidence=result["confidence"],
         treatment_recommendation=result["treatment"],
@@ -89,7 +101,7 @@ async def detect_crop_disease(
         disease_name=result["disease_name"],
         confidence=result["confidence"],
         treatment=result["treatment"],
-        image_path=filepath,
+        image_path=image_url_path,
     )
 
 

@@ -19,7 +19,7 @@ logger = logging.getLogger("farmer_assistant")
 router = APIRouter(prefix="/api/whatsapp", tags=["WhatsApp Webhook"])
 
 # Verification token for Meta webhook
-VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "Krishik-ai-verify-token")
+VERIFY_TOKEN = os.getenv("WHATSAPP_VERIFY_TOKEN", "krishik2024")
 
 class WhatsAppWebhookResponse(BaseModel):
     status: str

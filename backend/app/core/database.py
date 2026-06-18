@@ -44,6 +44,19 @@ def init_db():
     from ..models.schemas import Base, MarketPrice
     Base.metadata.create_all(bind=engine)
 
+    # Self-healing migration for missing duration_days column
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("SELECT duration_days FROM crops LIMIT 1"))
+        except Exception:
+            try:
+                print("Schema drift detected: Column 'duration_days' is missing in 'crops'. Altering table...")
+                conn.execute(text("ALTER TABLE crops ADD COLUMN duration_days INT NOT NULL DEFAULT 120"))
+                conn.commit()
+                print("Successfully migrated 'crops' table.")
+            except Exception as e:
+                print(f"Failed to migrate database schema: {e}")
+
     # Seed market_prices from CSV if table is empty
     import os
     import csv

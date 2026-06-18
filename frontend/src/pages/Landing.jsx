@@ -287,7 +287,11 @@ export const Landing = () => {
       const data = await sendOtp(cleaned);
       if (data.otp_dev_only) {
         setDevOtp(data.otp_dev_only);
-        toast.success(`OTP sent! (Dev mode: ${data.otp_dev_only})`, { autoClose: 10000 });
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          toast.success(`OTP sent! (Dev mode: ${data.otp_dev_only})`, { autoClose: 10000 });
+        } else {
+          toast.success('OTP sent successfully to your mobile number!');
+        }
       } else {
         toast.success('OTP sent to your mobile number!');
       }
@@ -332,7 +336,9 @@ export const Landing = () => {
       const otpData = await sendOtp(cleaned);
       if (otpData.otp_dev_only) {
         setDevOtp(otpData.otp_dev_only);
-        toast.success(`OTP sent! (Dev mode: ${otpData.otp_dev_only})`, { autoClose: 10000 });
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          toast.success(`OTP sent! (Dev mode: ${otpData.otp_dev_only})`, { autoClose: 10000 });
+        }
       }
       setStep(2);
     } catch (err) {
@@ -1329,7 +1335,7 @@ export const Landing = () => {
                       <button type="button" onClick={() => setStep(1)} style={{ fontSize: '11px', color: '#38bdf8', textDecoration: 'underline', marginTop: '4px', background: 'none', border: 'none', cursor: 'pointer' }}>{lt.changeNumber}</button>
                     </div>
 
-                    {devOtp && (
+                    {devOtp && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && (
                       <div style={{ background: 'rgba(251,191,36,0.07)', border: '1px dashed rgba(251,191,36,0.4)', borderRadius: '10px', padding: '10px 14px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <AlertCircle style={{ width: '14px', height: '14px', color: '#fbbf24', flexShrink: 0 }} />
                         <p style={{ fontSize: '12px', color: '#fbbf24', fontFamily: 'monospace' }}>Dev OTP: <strong style={{ fontSize: '15px', letterSpacing: '0.15em' }}>{devOtp}</strong></p>

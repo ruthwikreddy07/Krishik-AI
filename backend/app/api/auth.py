@@ -156,7 +156,7 @@ def register_farmer(req: RegisterRequest, db: Session = Depends(get_db)):
 
 
 @router.post("/send-otp")
-def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
+async def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
     """Send OTP to the farmer's registered mobile number."""
     farmer = db.query(Farmer).filter(Farmer.mobile_number == req.mobile_number).first()
     if not farmer:
@@ -167,9 +167,16 @@ def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
     farmer.otp_expires_at = datetime.now(timezone.utc) + timedelta(minutes=settings.OTP_EXPIRE_MINUTES)
     db.commit()
 
-    # Meta WhatsApp API integration
+    otp_text = f"కృషిక్ AI: మీ లాగిన్ ఓటిపి (OTP): {otp}. ఇది 5 నిమిషాల వరకు మాత్రమే పనిచేస్తుంది.\n\nKrishik AI: Your verification code is {otp}. Valid for 5 minutes."
     whatsapp_success = False
-    if settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_NUMBER_ID:
+
+    # Try Twilio WhatsApp integration first
+    if settings.TWILIO_ACCOUNT_SID and settings.TWILIO_AUTH_TOKEN:
+        from ..services.twilio_services import send_twilio_whatsapp_message
+        whatsapp_success = await send_twilio_whatsapp_message(req.mobile_number, otp_text)
+    
+    # Fallback to Meta WhatsApp integration
+    elif settings.WHATSAPP_API_TOKEN and settings.WHATSAPP_PHONE_NUMBER_ID:
         import httpx
         formatted_num = req.mobile_number.strip()
         if not formatted_num.startswith("+"):
@@ -191,12 +198,12 @@ def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
             "to": formatted_num,
             "type": "text",
             "text": {
-                "body": f"కృషిక్ AI: మీ లాగిన్ ఓటిపి (OTP): {otp}. ఇది 5 నిమిషాల వరకు మాత్రమే పనిచేస్తుంది.\n\nKrishik AI: Your verification code is {otp}. Valid for 5 minutes."
+                "body": otp_text
             }
         }
         try:
-            with httpx.Client(timeout=5.0) as client:
-                resp = client.post(url, json=payload, headers=headers)
+            async with httpx.AsyncClient(timeout=5.0) as client:
+                resp = await client.post(url, json=payload, headers=headers)
                 if resp.status_code in (200, 201):
                     logger.info(f"WhatsApp OTP sent to {formatted_num}")
                     whatsapp_success = True
@@ -205,7 +212,7 @@ def send_otp(req: SendOTPRequest, db: Session = Depends(get_db)):
         except Exception as e:
             logger.exception("Error calling WhatsApp API:")
     else:
-        logger.warning("WhatsApp API credentials missing. OTP was only saved to the database.")
+        logger.warning("WhatsApp/Twilio API credentials missing. OTP was only saved to the database.")
 
     response = {"message": "OTP sent successfully"}
     if not whatsapp_success:

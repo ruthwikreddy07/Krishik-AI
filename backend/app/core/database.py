@@ -7,8 +7,8 @@ from .config import settings
 engine = create_engine(
     settings.DATABASE_URL,
     pool_pre_ping=True,     # Verify connections before using them
-    pool_size=10,
-    max_overflow=20,
+    pool_size=2,            # Keep pool size low for Clever Cloud free tier (5 max connections limit)
+    max_overflow=0,         # Do not allow overflow connections
     echo=settings.DEBUG,    # Log SQL queries in debug mode
     connect_args={"connect_timeout": 3},  # Raise timeout exceptions quickly
 )

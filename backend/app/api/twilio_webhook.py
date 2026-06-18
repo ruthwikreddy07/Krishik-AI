@@ -202,14 +202,55 @@ async def process_twilio_message(sender_phone: str, message_body: str, num_media
             return
 
         # B. MANDI PRICES
-        elif lower_query in ("2", "3", "4", "5", "cotton", "paddy", "chilli", "groundnut", "price", "price report", "ధర", "రేటు"):
-            crop_name = "Cotton"
-            if lower_query == "3" or "paddy" in lower_query or "rice" in lower_query or "వరి" in lower_query:
+        elif (
+            any(x in lower_query for x in ("price", "ధర", "రేటు", "mandi", "మండీ", "trend")) 
+            or lower_query in ("2", "3", "4", "5", "cotton", "paddy", "chilli", "groundnut", "maize", "tomato", "turmeric", "sugarcane", "soybean", "chickpea", "pigeon peas")
+        ):
+            # Try to identify crop from query
+            crop_name = None
+            if "paddy" in lower_query or "rice" in lower_query or "వరి" in lower_query or lower_query == "3":
                 crop_name = "Paddy"
-            elif lower_query == "4" or "chilli" in lower_query or "మిర్చి" in lower_query or "మిరప" in lower_query:
+            elif "cotton" in lower_query or "పత్తి" in lower_query or lower_query == "2":
+                crop_name = "Cotton"
+            elif "chilli" in lower_query or "మిర్చి" in lower_query or "మిరప" in lower_query or lower_query == "4":
                 crop_name = "Chilli"
-            elif lower_query == "5" or "groundnut" in lower_query or "వేరుశనగ" in lower_query:
+            elif "groundnut" in lower_query or "వేరుశనగ" in lower_query or lower_query == "5":
                 crop_name = "Groundnut"
+            elif "maize" in lower_query or "మొక్కజొన్న" in lower_query:
+                crop_name = "Maize"
+            elif "tomato" in lower_query or "టమోటా" in lower_query or "టమాటా" in lower_query:
+                crop_name = "Tomato"
+            elif "turmeric" in lower_query or "పసుపు" in lower_query:
+                crop_name = "Turmeric"
+            elif "sugarcane" in lower_query or "చెరకు" in lower_query or "చెరుకు" in lower_query:
+                crop_name = "Sugarcane"
+            elif "soybean" in lower_query or "సోయా" in lower_query:
+                crop_name = "Soybean"
+            elif "chickpea" in lower_query or "శనగ" in lower_query:
+                crop_name = "Chickpea"
+            elif "pigeon" in lower_query or "కంది" in lower_query:
+                crop_name = "Pigeon Peas"
+
+            if not crop_name:
+                reply_text = (
+                    "రైతు సోదరా, దయచేసి పంట పేరును పేర్కొనండి (ఉదాహరణకు: పత్తి ధర, వరి ధర).\n\n"
+                    "Dear Farmer, please specify a supported crop (e.g., 'Cotton price', 'Paddy price').\n\n"
+                    "We currently support price reports for:\n"
+                    "• Cotton (పత్తి)\n"
+                    "• Paddy / Rice (వరి)\n"
+                    "• Chilli (మిరప)\n"
+                    "• Groundnut (వేరుశనగ)\n"
+                    "• Maize (మొక్కజొన్న)\n"
+                    "• Tomato (టమాటా)\n"
+                    "• Turmeric (పసుపు)\n"
+                    "• Sugarcane (చెరకు)\n"
+                    "• Soybean (సోయాబీన్)\n"
+                    "• Chickpea (శనగలు)\n"
+                    "• Pigeon Peas (కందులు)\n\n"
+                    "↩️ Reply '0' to return to menu."
+                )
+                await send_twilio_whatsapp_message(sender_phone, reply_text)
+                return
 
             # Query database
             latest_price_rec = db.query(MarketPrice).filter(MarketPrice.crop_name == crop_name).order_by(MarketPrice.price_date.desc()).first()

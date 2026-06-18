@@ -494,11 +494,13 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
             return {"status": "success"}
 
         # C. KEYWORD: MARKET PRICE / CROP PRICE
-        elif "price" in lower_query or "ధర" in lower_query or "రేటు" in lower_query:
+        elif "price" in lower_query or "ధర" in lower_query or "రేటు" in lower_query or "mandi" in lower_query or "మండీ" in lower_query:
             # Try to identify crop from query
-            crop_name = "Cotton" # Default fallback
+            crop_name = None
             if "paddy" in lower_query or "rice" in lower_query or "వరి" in lower_query:
                 crop_name = "Paddy"
+            elif "cotton" in lower_query or "పత్తి" in lower_query:
+                crop_name = "Cotton"
             elif "chilli" in lower_query or "మిర్చి" in lower_query or "మిరప" in lower_query:
                 crop_name = "Chilli"
             elif "maize" in lower_query or "మొక్కజొన్న" in lower_query:
@@ -517,6 +519,27 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
                 crop_name = "Chickpea"
             elif "pigeon" in lower_query or "కంది" in lower_query:
                 crop_name = "Pigeon Peas"
+
+            if not crop_name:
+                reply_text = (
+                    "రైతు సోదరా, దయచేసి పంట పేరును పేర్కొనండి (ఉదాహరణకు: పత్తి ధర, వరి ధర).\n\n"
+                    "Dear Farmer, please specify a supported crop (e.g., 'Cotton price', 'Paddy price').\n\n"
+                    "We currently support price reports for:\n"
+                    "• Cotton (పత్తి)\n"
+                    "• Paddy / Rice (వరి)\n"
+                    "• Chilli (మిరప)\n"
+                    "• Groundnut (веరుశనగ)\n"
+                    "• Maize (మొక్కజొన్న)\n"
+                    "• Tomato (టమాటా)\n"
+                    "• Turmeric (పసుపు)\n"
+                    "• Sugarcane (చెరకు)\n"
+                    "• Soybean (సోయాబీన్)\n"
+                    "• Chickpea (శనగలు)\n"
+                    "• Pigeon Peas (కందులు)\n\n"
+                    "↩️ Reply '0' to return to menu."
+                )
+                await send_whatsapp_reply(sender_phone, reply_text)
+                return {"status": "success"}
 
             # Query database
             latest_price_rec = db.query(MarketPrice).filter(MarketPrice.crop_name == crop_name).order_by(MarketPrice.price_date.desc()).first()

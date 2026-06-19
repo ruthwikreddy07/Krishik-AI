@@ -26,7 +26,7 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
 
-@router.post("/", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse)
 async def chat_with_assistant(
     req: ChatRequest,
     current_farmer: Farmer = Depends(get_current_farmer),

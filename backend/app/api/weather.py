@@ -159,7 +159,7 @@ def _daily_averages_from_hourly(
 # IMPORTANT: This route MUST be declared before /{farmer_id} to prevent
 # FastAPI from trying to parse "by-location" as an integer farmer_id.
 
-@router.get("/by-location/", response_model=dict)
+@router.get("/by-location", response_model=dict)
 async def get_weather_by_location(
     lat: float = Query(..., description="Latitude"),
     lon: float = Query(..., description="Longitude"),

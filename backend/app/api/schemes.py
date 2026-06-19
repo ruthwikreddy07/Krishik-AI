@@ -27,7 +27,7 @@ class SchemeResponse(BaseModel):
 
 # ── Endpoints ───────────────────────────────────────────────
 
-@router.get("/", response_model=list[SchemeResponse])
+@router.get("", response_model=list[SchemeResponse])
 def list_schemes(
     scheme_type: str | None = Query(None, description="Filter: 'State' or 'Central'"),
     db: Session = Depends(get_db),

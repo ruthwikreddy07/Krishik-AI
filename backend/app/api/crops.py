@@ -71,9 +71,7 @@ def get_crop_recommendation(req: CropRecommendRequest):
         rainfall=req.rainfall,
     )
     return result
-
-
-@router.post("/", response_model=CropResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=CropResponse, status_code=status.HTTP_201_CREATED)
 def add_crop(
     req: CropCreate,
     current_farmer: Farmer = Depends(get_current_farmer),

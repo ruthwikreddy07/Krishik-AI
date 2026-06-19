@@ -100,7 +100,7 @@ export const getWeatherByFarmer = async (farmerId) => {
  * Useful as fallback using browser geolocation.
  */
 export const getWeatherByLocation = async (lat, lon) => {
-  const res = await api.get('/weather/by-location/', { params: { lat, lon } });
+  const res = await api.get('/weather/by-location', { params: { lat, lon } });
   return res.data;
 };
 
@@ -118,7 +118,7 @@ export const getCrops = async (farmerId) => {
  * Add a new crop entry.
  */
 export const addCrop = async (cropData) => {
-  const res = await api.post('/crops/', cropData);
+  const res = await api.post('/crops', cropData);
   return res.data;
 };
 
@@ -195,7 +195,7 @@ export const getPricePrediction = async (cropName, daysAhead = 7) => {
  */
 export const getSchemes = async (schemeType = null) => {
   const params = schemeType ? { scheme_type: schemeType } : {};
-  const res = await api.get('/schemes/', { params });
+  const res = await api.get('/schemes', { params });
   return res.data;
 };
 
@@ -235,7 +235,7 @@ export const recommendFertilizer = async (params) => {
  * @param {string} language - User interface language ('en' or 'te')
  */
 export const askChatbot = async (message, history = [], farmerId = null, language = 'en') => {
-  const res = await api.post('/chat/', {
+  const res = await api.post('/chat', {
     message,
     history,
     farmer_id: farmerId,

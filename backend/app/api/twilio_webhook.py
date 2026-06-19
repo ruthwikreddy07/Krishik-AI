@@ -332,7 +332,7 @@ async def process_twilio_message(sender_phone: str, message_body: str, num_media
                 payload = {
                     "contents": [{"role": "user", "parts": [{"text": message_body}]}],
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
-                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 600}
+                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
                 }
                 try:
                     async with httpx.AsyncClient(timeout=20.0) as client:

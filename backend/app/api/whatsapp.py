@@ -604,7 +604,7 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
                 payload = {
                     "contents": [{"role": "user", "parts": [{"text": text_body}]}],
                     "systemInstruction": {"parts": [{"text": system_instruction}]},
-                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 600}
+                    "generationConfig": {"temperature": 0.7, "maxOutputTokens": 2048}
                 }
                 try:
                     async with httpx.AsyncClient(timeout=20.0) as client:

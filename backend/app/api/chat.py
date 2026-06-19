@@ -117,7 +117,7 @@ async def chat_with_assistant(
         },
         "generationConfig": {
             "temperature": 0.7,
-            "maxOutputTokens": 800
+            "maxOutputTokens": 2048
         }
     }
 

@@ -16,16 +16,27 @@ import { AIChatbot } from './pages/AIChatbot';
 import { Notifications } from './pages/Notifications';
 import { Profile } from './pages/Profile';
 import { PestRisk } from './pages/PestRisk';
+import { AdminLogin } from './pages/AdminLogin';
+import { AdminDashboard } from './pages/AdminDashboard';
+import { ExpertDashboard } from './pages/ExpertDashboard';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
-// Protected Route wrapper
+// Protected Route wrapper for Farmers
 const ProtectedLayout = ({ children }) => {
   const { user } = useContext(AppContext);
 
   // If user is not authenticated, redirect to the Welcome / Login page
   if (!user) {
     return <Navigate to="/" replace />;
+  }
+
+  // If user is staff, redirect to their dashboard
+  if (user.role === 'admin') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (user.role === 'expert') {
+    return <Navigate to="/expert/dashboard" replace />;
   }
 
   return (
@@ -47,11 +58,46 @@ const ProtectedLayout = ({ children }) => {
   );
 };
 
-// Public Route wrapper (Redirect to dashboard if logged in)
+// Protected Route wrapper for Staff
+const StaffProtectedLayout = ({ children, allowedRoles }) => {
+  const { user } = useContext(AppContext);
+
+  // If staff is not authenticated, redirect to staff login
+  if (!user) {
+    return <Navigate to="/admin/login" replace />;
+  }
+
+  // If user is a farmer (no role), redirect to farmer dashboard
+  if (!user.role) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  // If role is not allowed, redirect to respective dashboard
+  if (!allowedRoles.includes(user.role)) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (user.role === 'expert') {
+      return <Navigate to="/expert/dashboard" replace />;
+    }
+  }
+
+  return (
+    <div style={{ minHeight: '100vh', background: 'var(--bg-primary)', color: 'var(--text-primary)', padding: '32px' }}>
+      <Translate>{children}</Translate>
+    </div>
+  );
+};
+
+// Public Route wrapper (Redirect to appropriate dashboard if logged in)
 const PublicLayout = ({ children }) => {
   const { user } = useContext(AppContext);
 
   if (user) {
+    if (user.role === 'admin') {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else if (user.role === 'expert') {
+      return <Navigate to="/expert/dashboard" replace />;
+    }
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -68,8 +114,13 @@ function AppContent() {
             <Landing />
           </PublicLayout>
         } />
+        <Route path="/admin/login" element={
+          <PublicLayout>
+            <AdminLogin />
+          </PublicLayout>
+        } />
 
-        {/* Protected Routes */}
+        {/* Protected Farmer Routes */}
         <Route path="/dashboard" element={<ProtectedLayout><Dashboard /></ProtectedLayout>} />
         <Route path="/farm" element={<ProtectedLayout><MyFarm /></ProtectedLayout>} />
         <Route path="/crops" element={<ProtectedLayout><CropManagement /></ProtectedLayout>} />
@@ -81,6 +132,18 @@ function AppContent() {
         <Route path="/pest-risk" element={<ProtectedLayout><PestRisk /></ProtectedLayout>} />
         <Route path="/notifications" element={<ProtectedLayout><Notifications /></ProtectedLayout>} />
         <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />
+
+        {/* Protected Staff Routes */}
+        <Route path="/admin/dashboard" element={
+          <StaffProtectedLayout allowedRoles={['admin']}>
+            <AdminDashboard />
+          </StaffProtectedLayout>
+        } />
+        <Route path="/expert/dashboard" element={
+          <StaffProtectedLayout allowedRoles={['expert', 'admin']}>
+            <ExpertDashboard />
+          </StaffProtectedLayout>
+        } />
 
         {/* Fallback Catch-all Route */}
         <Route path="*" element={<Navigate to="/" replace />} />

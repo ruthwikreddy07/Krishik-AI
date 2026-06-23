@@ -41,7 +41,7 @@ def check_db_connection() -> bool:
 
 def init_db():
     """Create all tables defined in the ORM models if they don't exist."""
-    from ..models.schemas import Base, MarketPrice
+    from ..models.schemas import Base, MarketPrice, GovernmentScheme
     Base.metadata.create_all(bind=engine)
 
     # Self-healing migration for missing duration_days column
@@ -56,6 +56,129 @@ def init_db():
                 print("Successfully migrated 'crops' table.")
             except Exception as e:
                 print(f"Failed to migrate database schema: {e}")
+
+    # Seed/Reset government_schemes if empty or if containing garbled characters (e.g. Ó)
+    db = SessionLocal()
+    try:
+        schemes = db.query(GovernmentScheme).all()
+        has_garbled = any("Ó" in s.title for s in schemes)
+        if len(schemes) == 0 or has_garbled:
+            print("Database has garbled or empty government schemes. Re-seeding...")
+            db.query(GovernmentScheme).delete()
+            db.commit()
+            
+            gov_schemes = [
+                GovernmentScheme(
+                    title="Rythu Bandhu (రైతుబంధు)",
+                    description="Investment support scheme providing financial assistance to farmers for crop cultivation. The government deposits money directly into farmer bank accounts before every crop season.",
+                    eligibility_criteria="Must own agricultural land in Telangana. Land records must be updated in the Dharani portal. Both tenant and owner farmers are eligible.",
+                    benefits="Rs. 10,000 per acre per crop season (Rs. 5,000 per acre per season × 2 seasons/year). Direct bank transfer before Kharif and Rabi seasons.",
+                    scheme_type="State"
+                ),
+                GovernmentScheme(
+                    title="Rythu Bima (రైతుబీమా)",
+                    description="Life insurance scheme for Telangana farmers. Provides Rs. 5 lakh insurance coverage to farmers aged 18-59 years in case of death due to any reason.",
+                    eligibility_criteria="Must be a farmer aged 18-59 years registered in Telangana. Enrolled Rythu Bandhu beneficiaries are automatically covered.",
+                    benefits="Rs. 5,00,000 life insurance coverage. Premium paid entirely by the Telangana government. Claim settlement within 10 days.",
+                    scheme_type="State"
+                ),
+                GovernmentScheme(
+                    title="Rythu Vedika (రైతు వేదిక)",
+                    description="Community meeting halls built in every village cluster for farmers to gather, share knowledge, and receive training from agricultural officers.",
+                    eligibility_criteria="All farmers in Telangana. No specific eligibility — open community facility.",
+                    benefits="Free venue for farmer meetings, training programs, and agricultural awareness sessions. Access to agricultural officers and experts.",
+                    scheme_type="State"
+                ),
+                GovernmentScheme(
+                    title="Telangana Micro Irrigation Project",
+                    description="Subsidized drip and sprinkler irrigation systems to promote water conservation and improve crop yields.",
+                    eligibility_criteria="Farmers with minimum 0.5 acres of agricultural land. Priority for SC/ST/small/marginal farmers.",
+                    benefits="Up to 90% subsidy on drip irrigation systems. Up to 75% subsidy on sprinkler systems. Free technical guidance for installation.",
+                    scheme_type="State"
+                ),
+                GovernmentScheme(
+                    title="PM-KISAN (Pradhan Mantri Kisan Samman Nidhi)",
+                    description="Income support to all landholding farmer families across the country to supplement financial needs for crop cultivation.",
+                    eligibility_criteria="All landholding farmer families with cultivable land. Must have Aadhaar-linked bank account. Excludes institutional landholders and high-income farmers.",
+                    benefits="Rs. 6,000 per year in three equal installments of Rs. 2,000 each. Direct bank transfer.",
+                    scheme_type="Central"
+                ),
+                GovernmentScheme(
+                    title="Pradhan Mantri Fasal Bima Yojana (PMFBY)",
+                    description="Crop insurance scheme to provide comprehensive insurance coverage against crop loss due to natural calamities, pests, and diseases.",
+                    eligibility_criteria="All farmers including sharecroppers and tenant farmers. Both loanee and non-loanee farmers are eligible.",
+                    benefits="Premium: 2% for Kharif, 1.5% for Rabi, 5% for commercial/horticulture crops. Full sum insured for crop damage. Post-harvest loss coverage for 14 days.",
+                    scheme_type="Central"
+                ),
+                GovernmentScheme(
+                    title="Kisan Credit Card (KCC)",
+                    description="Provides timely and adequate credit to farmers for their crop production, post-harvest needs, and farm maintenance requirements.",
+                    eligibility_criteria="All farmers, tenant farmers, sharecroppers, and self-help groups. Must have agricultural land or allied activities (dairy, fisheries, etc.).",
+                    benefits="Credit limit up to Rs. 3 lakh at 4% interest rate (after government subsidy). Flexible repayment. Covers crop cultivation, post-harvest, and farm equipment.",
+                    scheme_type="Central"
+                ),
+                GovernmentScheme(
+                    title="Soil Health Card Scheme",
+                    description="Provides soil health cards to farmers every 2 years with information on nutrient status and recommendations for fertilizer application.",
+                    eligibility_criteria="All farmers across India. Free of cost.",
+                    benefits="Free soil testing. Detailed soil health report with nutrient levels (N, P, K, pH, organic carbon). Customized fertilizer recommendations to improve soil fertility.",
+                    scheme_type="Central"
+                ),
+                GovernmentScheme(
+                    title="e-NAM (National Agriculture Market)",
+                    description="Online trading portal connecting APMC mandis across India to create a unified national market for agricultural commodities.",
+                    eligibility_criteria="All farmers, traders, commission agents. Registration through local APMC mandi.",
+                    benefits="Real-time price discovery across mandis. Direct payment to farmer bank account. Reduced intermediary costs. Better price realization.",
+                    scheme_type="Central"
+                ),
+                GovernmentScheme(
+                    title="Paramparagat Krishik Vikas Yojana (PKVY)",
+                    description="Promotes organic farming through cluster approach and PGS (Participatory Guarantee System) certification.",
+                    eligibility_criteria="Farmer groups (clusters of 50+ farmers with 50 acres). Priority for tribal and northeastern regions.",
+                    benefits="Rs. 50,000 per hectare over 3 years for organic inputs, certification, and marketing. Free PGS organic certification.",
+                    scheme_type="Central"
+                )
+            ]
+            db.bulk_save_objects(gov_schemes)
+            db.commit()
+            print(f"Successfully seeded/repaired {len(gov_schemes)} government schemes in database.")
+    except Exception as e:
+        print(f"Error seeding government schemes: {e}")
+    finally:
+        db.close()
+
+    # Seed default Staff (Admin & Expert) if empty
+    db = SessionLocal()
+    try:
+        import bcrypt
+        from ..models.schemas import Staff
+        
+        if db.query(Staff).count() == 0:
+            print("Seeding default staff accounts...")
+            admin_pwd = bcrypt.hashpw("admin123".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            expert_pwd = bcrypt.hashpw("expert123".encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+            
+            staff_members = [
+                Staff(
+                    name="System Admin",
+                    email="admin@gmail.com",
+                    password_hash=admin_pwd,
+                    role="admin"
+                ),
+                Staff(
+                    name="Agri Expert",
+                    email="expert@gmail.com",
+                    password_hash=expert_pwd,
+                    role="expert"
+                )
+            ]
+            db.bulk_save_objects(staff_members)
+            db.commit()
+            print("Successfully seeded staff accounts.")
+    except Exception as e:
+        print(f"Error seeding staff accounts: {e}")
+    finally:
+        db.close()
 
     # Seed market_prices from CSV if table is empty
     import os

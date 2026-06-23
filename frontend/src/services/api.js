@@ -45,6 +45,15 @@ export const demoLogin = async () => {
 };
 
 /**
+ * Log in as an Admin or Expert.
+ * Returns { access_token, token_type, staff_id, role, name }
+ */
+export const staffLogin = async (email, password) => {
+  const res = await api.post('/auth/staff-login', { email, password });
+  return res.data;
+};
+
+/**
  * Send OTP to a mobile number.
  * Returns { message, otp_dev_only } (dev mode exposes OTP).
  */
@@ -252,4 +261,31 @@ export const askChatbot = async (message, history = [], farmerId = null, languag
   return res.data;
 };
 
+// ── Admin & Expert APIs ─────────────────────────────────────
+
+/**
+ * Get all disease records across all farmers (Admin/Expert only).
+ */
+export const adminGetAllDiseaseRecords = async () => {
+  const res = await api.get('/disease/all');
+  return res.data;
+};
+
+/**
+ * Verify a disease record and write expert comments (Admin/Expert only).
+ */
+export const adminVerifyDiseaseRecord = async (recordId, comments) => {
+  const res = await api.put(`/disease/verify/${recordId}`, { expert_comments: comments });
+  return res.data;
+};
+
+/**
+ * Get all registered farmers in the system (Admin only).
+ */
+export const adminGetAllFarmers = async () => {
+  const res = await api.get('/auth/farmers');
+  return res.data;
+};
+
 export default api;
+

@@ -12,9 +12,9 @@ from sqlalchemy.orm import Session
 
 from ..core.config import settings
 from ..core.database import get_db
-from ..models.schemas import DiseaseRecord, Farmer
+from ..models.schemas import DiseaseRecord, Farmer, Staff
 from ..ml.disease_detection import detect_disease
-from .auth import get_current_farmer
+from .auth import get_current_farmer, verify_expert_or_admin
 
 router = APIRouter(prefix="/api/disease", tags=["Disease Detection"])
 
@@ -128,3 +128,36 @@ def get_disease_history(
         .all()
     )
     return records
+
+
+class VerifyDiseaseRequest(BaseModel):
+    expert_comments: str
+
+
+@router.get("/all", response_model=list[DiseaseResponse])
+def get_all_disease_records(
+    current_staff: Staff = Depends(verify_expert_or_admin),
+    db: Session = Depends(get_db)
+):
+    """Retrieve all submitted disease records (Admin & Expert only)."""
+    return db.query(DiseaseRecord).order_by(DiseaseRecord.created_at.desc()).all()
+
+
+@router.put("/verify/{record_id}", response_model=DiseaseResponse)
+def verify_disease_record(
+    record_id: int,
+    req: VerifyDiseaseRequest,
+    current_staff: Staff = Depends(verify_expert_or_admin),
+    db: Session = Depends(get_db)
+):
+    """Submit expert comments and mark a disease record as verified (Admin & Expert only)."""
+    record = db.query(DiseaseRecord).filter(DiseaseRecord.id == record_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Disease record not found")
+        
+    record.verified_by_expert = True
+    record.expert_comments = req.expert_comments
+    db.commit()
+    db.refresh(record)
+    return record
+

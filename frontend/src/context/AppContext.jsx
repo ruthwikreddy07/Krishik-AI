@@ -42,7 +42,7 @@ export const AppProvider = ({ children }) => {
 
   // Enrich user profile from backend after login to get GPS coords and DB fields
   useEffect(() => {
-    if (user?.id && user.id !== 0 && token) {
+    if (user?.id && user.id !== 0 && user.id !== 99999 && !user.role && token) {
       getFarmerProfile(user.id)
         .then((profile) => {
           const enriched = {

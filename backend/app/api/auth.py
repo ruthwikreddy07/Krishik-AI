@@ -15,7 +15,8 @@ from jose import jwt
 
 from ..core.config import settings
 from ..core.database import get_db
-from ..models.schemas import Farmer
+from ..models.schemas import Farmer, Staff
+import bcrypt
 
 logger = logging.getLogger("farmer_assistant")
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -52,6 +53,20 @@ class TokenResponse(BaseModel):
     token_type: str = "bearer"
     farmer_id: int
     name: str
+
+
+class StaffLoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class StaffTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    staff_id: int
+    role: str
+    name: str
+
 
 
 class FarmerProfile(BaseModel):
@@ -94,7 +109,13 @@ def _generate_otp(length: int = 6) -> str:
 
 def _create_access_token(farmer_id: int) -> str:
     expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    payload = {"sub": str(farmer_id), "exp": expire}
+    payload = {"sub": str(farmer_id), "role": "farmer", "exp": expire}
+    return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+
+
+def _create_staff_access_token(staff_id: int, role: str) -> str:
+    expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    payload = {"sub": str(staff_id), "role": role, "exp": expire}
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
 
@@ -107,17 +128,46 @@ def get_current_farmer(
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         farmer_id_str: str = payload.get("sub")
+        role: str = payload.get("role")
+        if role and role in ("admin", "expert"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token role for farmer",
+            )
         if not farmer_id_str:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid access token: missing subject",
             )
         farmer_id = int(farmer_id_str)
-    except Exception:
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Could not validate credentials or token expired",
         )
+
+    # Allow local bypass/mock for demo mode token
+    if token == "demo-token" and settings.DEBUG:
+        demo_farmer = db.query(Farmer).filter(Farmer.id == 99999).first()
+        if not demo_farmer:
+            demo_farmer = Farmer(
+                id=99999,
+                name="Demo Farmer",
+                mobile_number="9999999999",
+                village="Warangal",
+                mandal="Warangal",
+                district="Warangal",
+                land_size_acres=3.0,
+                soil_type="Black Clayey",
+                water_source="Canal",
+                is_verified=True
+            )
+            db.add(demo_farmer)
+            db.commit()
+            db.refresh(demo_farmer)
+        return demo_farmer
 
     farmer = db.query(Farmer).filter(Farmer.id == farmer_id).first()
     if not farmer:
@@ -126,6 +176,58 @@ def get_current_farmer(
             detail="Farmer profile not found",
         )
     return farmer
+
+
+def get_current_staff(
+    credentials: HTTPAuthorizationCredentials = Security(security),
+    db: Session = Depends(get_db)
+) -> Staff:
+    """Validate JWT token and return the authenticated staff member."""
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        staff_id_str: str = payload.get("sub")
+        role: str = payload.get("role")
+        if not staff_id_str or role not in ("admin", "expert"):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid access token: missing staff subject or role",
+            )
+        staff_id = int(staff_id_str)
+    except Exception:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Could not validate staff credentials or token expired",
+        )
+
+    staff = db.query(Staff).filter(Staff.id == staff_id).first()
+    if not staff:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Staff profile not found",
+        )
+    return staff
+
+
+def verify_admin(current_staff: Staff = Depends(get_current_staff)) -> Staff:
+    """Enforce admin-only access."""
+    if current_staff.role != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: admin access required",
+        )
+    return current_staff
+
+
+def verify_expert_or_admin(current_staff: Staff = Depends(get_current_staff)) -> Staff:
+    """Enforce expert or admin access."""
+    if current_staff.role not in ("expert", "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Forbidden: expert or admin access required",
+        )
+    return current_staff
+
 
 
 # ── Endpoints ───────────────────────────────────────────────
@@ -310,4 +412,44 @@ def demo_login(db: Session = Depends(get_db)):
         farmer_id=demo_farmer.id,
         name=demo_farmer.name
     )
+
+
+@router.post("/staff-login", response_model=StaffTokenResponse)
+def staff_login(req: StaffLoginRequest, db: Session = Depends(get_db)):
+    """Authenticate Admin or Expert staff using email/password."""
+    staff = db.query(Staff).filter(Staff.email == req.email).first()
+    if not staff:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+    
+    try:
+        is_valid = bcrypt.checkpw(req.password.encode('utf-8'), staff.password_hash.encode('utf-8'))
+    except Exception:
+        is_valid = False
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password"
+        )
+
+    token = _create_staff_access_token(staff.id, staff.role)
+    return StaffTokenResponse(
+        access_token=token,
+        staff_id=staff.id,
+        role=staff.role,
+        name=staff.name
+    )
+
+
+@router.get("/farmers", response_model=list[FarmerProfile])
+def get_all_farmers(
+    current_staff: Staff = Depends(verify_admin),
+    db: Session = Depends(get_db)
+):
+    """Retrieve list of all registered farmers (Admin only)."""
+    return db.query(Farmer).all()
+
 

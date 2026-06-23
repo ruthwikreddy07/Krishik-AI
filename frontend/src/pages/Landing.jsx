@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { sendOtp, verifyOtp, registerFarmer } from '../services/api';
+import { sendOtp, verifyOtp, registerFarmer, demoLogin } from '../services/api';
 import { toast } from 'react-toastify';
 import {
   Sprout, Phone, ShieldCheck, ArrowRight, Sparkles,
@@ -505,12 +505,30 @@ export const Landing = () => {
     }
   };
 
-  const handleDemoAccess = () => {
-    login(
-      { id: 0, name: 'Demo Farmer', phone: '9999999999', village: 'Warangal', landSize: '3.0', soilType: 'Black Clayey', waterSource: 'Canal' },
-      'demo-token'
-    );
-    navigate('/dashboard');
+  const handleDemoAccess = async () => {
+    setLoading(true);
+    try {
+      const data = await demoLogin();
+      login(
+        {
+          id: data.farmer_id,
+          name: data.name,
+          phone: '9999999999',
+          village: 'Warangal',
+          landSize: '3.0',
+          soilType: 'Black Clayey',
+          waterSource: 'Canal',
+        },
+        data.access_token
+      );
+      toast.success(`Welcome to Demo Mode, ${data.name}! 🌾`);
+      navigate('/dashboard');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to initialize demo session. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Stats for hero section

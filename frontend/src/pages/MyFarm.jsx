@@ -25,9 +25,8 @@ export const MyFarm = () => {
     }
   });
 
-  // Load latest farmer profile from backend on mount
   useEffect(() => {
-    if (user?.id && user.id !== 0) {
+    if (user?.id && user.id !== 99999) {
       setLoading(true);
       getFarmerProfile(user.id)
         .then((profile) => {
@@ -111,7 +110,7 @@ export const MyFarm = () => {
   };
 
   const onSubmit = async (data) => {
-    if (!user?.id || user.id === 0) {
+    if (!user?.id || user.id === 99999) {
       login({ ...user, ...data }, localStorage.getItem('farmer_token') || 'demo-token');
       toast.success("Farm profile updated (Demo mode)!");
       return;

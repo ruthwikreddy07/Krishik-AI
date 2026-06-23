@@ -17,7 +17,7 @@ export const Weather = () => {
     setLoading(true);
     setError(null);
     try {
-      if (user?.id && user.id !== 0) {
+      if (user?.id && user.id !== 99999) {
         // Registered farmer — use their stored GPS coords
         const data = await getWeatherByFarmer(user.id);
         setWeather(data);
@@ -28,7 +28,7 @@ export const Weather = () => {
             async (pos) => {
               const data = await getWeatherByLocation(pos.coords.latitude, pos.coords.longitude);
               // Wrap into same shape
-              setWeather({ ...data, farmer_id: 0, location: 'Your Location', forecast: data.forecast_days, current: buildCurrentFromForecast(data.forecast_days), irrigation_advisory: '⚠️ Register for personalized irrigation advisory.', crop_advisory: '⚠️ Register for crop-specific recommendations.' });
+              setWeather({ ...data, farmer_id: 99999, location: 'Your Location', forecast: data.forecast_days, current: buildCurrentFromForecast(data.forecast_days), irrigation_advisory: '⚠️ Register for personalized irrigation advisory.', crop_advisory: '⚠️ Register for crop-specific recommendations.' });
               setLoading(false);
             },
             async () => {

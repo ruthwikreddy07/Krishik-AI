@@ -19,7 +19,7 @@ export const Dashboard = () => {
       setLoading(true);
       try {
         // Fetch crops if user is registered (not demo)
-        if (user?.id && user.id !== 0) {
+        if (user?.id && user.id !== 99999) {
           const [cropsData] = await Promise.allSettled([
             getCrops(user.id),
             // Try fetching weather (requires GPS coords in profile)
@@ -152,7 +152,7 @@ export const Dashboard = () => {
             <span>
               {user?.village ? `${user.village}, Telangana` : 'Telangana'} 
               {user?.soilType && user.soilType !== '—' ? ` | Soil: ${user.soilType}` : ''}
-              {user?.id === 0 && ' | (Demo Mode)'}
+              {user?.id === 99999 && ' | (Demo Mode)'}
             </span>
           </p>
         </div>

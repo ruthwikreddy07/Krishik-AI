@@ -34,17 +34,17 @@ export const DiseaseScanner = () => {
 
       const runDetection = async () => {
         try {
-          if (!user?.id || user.id === 0) {
-            throw new Error('Demo mode: bypass API call');
+          if (!user?.id) {
+            throw new Error('User not authenticated');
           }
           const farmerId = user.id;
           const data = await detectDisease(farmerId, file);
           // data: { disease_name, confidence, treatment, image_path }
           setResult({
             disease: data.disease_name,
-            confidence: (data.confidence * 100).toFixed(1),
-            cause: `Detected via CNN model with ${(data.confidence * 100).toFixed(1)}% confidence.`,
-            severity: data.confidence > 0.7 ? 'High' : data.confidence > 0.4 ? 'Medium' : 'Low',
+            confidence: (data.confidence).toFixed(1),
+            cause: `Detected via CNN model with ${(data.confidence).toFixed(1)}% confidence.`,
+            severity: data.confidence > 70 ? 'High' : data.confidence > 40 ? 'Medium' : 'Low',
             treatments: data.treatment ? data.treatment.split('.').filter(t => t.trim()).map(t => t.trim() + '.') : ['Follow standard treatment protocols.'],
             prevention: ['Use certified disease-resistant seeds.', 'Maintain optimal field drainage.', 'Regular scouting and early intervention.']
           });
@@ -54,7 +54,7 @@ export const DiseaseScanner = () => {
             toast.error(`${data.disease_name} detected! Check treatment recommendations.`);
           }
           // Refresh history
-          if (user?.id && user.id !== 0) {
+          if (user?.id) {
             getDiseaseHistory(user.id).then(setHistory).catch(() => {});
           }
         } catch (err) {

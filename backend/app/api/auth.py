@@ -281,3 +281,33 @@ def update_profile(
     db.commit()
     db.refresh(current_farmer)
     return current_farmer
+
+
+@router.post("/demo-login", response_model=TokenResponse)
+def demo_login(db: Session = Depends(get_db)):
+    """Authenticate or register the Demo Farmer, returning a valid JWT token."""
+    demo_farmer = db.query(Farmer).filter(Farmer.mobile_number == "9999999999").first()
+    if not demo_farmer:
+        demo_farmer = Farmer(
+            id=99999,
+            name="Demo Farmer",
+            mobile_number="9999999999",
+            village="Warangal",
+            mandal="Warangal",
+            district="Warangal",
+            land_size_acres=3.0,
+            soil_type="Black Clayey",
+            water_source="Canal",
+            is_verified=True
+        )
+        db.add(demo_farmer)
+        db.commit()
+        db.refresh(demo_farmer)
+
+    token = _create_access_token(demo_farmer.id)
+    return TokenResponse(
+        access_token=token,
+        farmer_id=demo_farmer.id,
+        name=demo_farmer.name
+    )
+

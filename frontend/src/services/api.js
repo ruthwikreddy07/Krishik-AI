@@ -37,6 +37,14 @@ api.interceptors.response.use(
 // ── Auth API ────────────────────────────────────────────────
 
 /**
+ * Log in as a Demo Farmer and obtain a real JWT token.
+ */
+export const demoLogin = async () => {
+  const res = await api.post('/auth/demo-login');
+  return res.data;
+};
+
+/**
  * Send OTP to a mobile number.
  * Returns { message, otp_dev_only } (dev mode exposes OTP).
  */

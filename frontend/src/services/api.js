@@ -287,5 +287,29 @@ export const adminGetAllFarmers = async () => {
   return res.data;
 };
 
+/**
+ * Create a new government scheme (Admin only).
+ */
+export const adminCreateScheme = async (schemeData) => {
+  const res = await api.post('/schemes', schemeData);
+  return res.data;
+};
+
+/**
+ * Update an existing government scheme (Admin only).
+ */
+export const adminUpdateScheme = async (schemeId, schemeData) => {
+  const res = await api.put(`/schemes/${schemeId}`, schemeData);
+  return res.data;
+};
+
+/**
+ * Delete a government scheme (Admin only).
+ */
+export const adminDeleteScheme = async (schemeId) => {
+  const res = await api.delete(`/schemes/${schemeId}`);
+  return res.data;
+};
+
 export default api;
 

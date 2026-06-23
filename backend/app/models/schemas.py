@@ -87,6 +87,30 @@ class GovernmentScheme(Base):
     eligibility_criteria = Column(Text, nullable=False)
     benefits = Column(Text, nullable=False)
     scheme_type = Column(String(50), nullable=False, default='State')  # State or Central
+    authority = Column(String(150), nullable=True)
+    documents = Column(Text, nullable=True)
+
+    # Translation Fields
+    title_telugu = Column(String(255), nullable=True)
+    title_hindi = Column(String(255), nullable=True)
+    description_telugu = Column(Text, nullable=True)
+    description_hindi = Column(Text, nullable=True)
+    eligibility_criteria_telugu = Column(Text, nullable=True)
+    eligibility_criteria_hindi = Column(Text, nullable=True)
+    benefits_telugu = Column(Text, nullable=True)
+    benefits_hindi = Column(Text, nullable=True)
+    authority_telugu = Column(String(150), nullable=True)
+    authority_hindi = Column(String(150), nullable=True)
+    documents_telugu = Column(Text, nullable=True)
+    documents_hindi = Column(Text, nullable=True)
+
+    # Dynamic Eligibility Rules
+    min_land_acres = Column(Numeric(5, 2), nullable=True)
+    max_land_acres = Column(Numeric(5, 2), nullable=True)
+    min_age = Column(Integer, nullable=True)
+    max_age = Column(Integer, nullable=True)
+    allowed_caste = Column(String(100), nullable=True, default='All')
+
     created_at = Column(DateTime, default=datetime.utcnow)
 
 

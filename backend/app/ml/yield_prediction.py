@@ -56,21 +56,41 @@ def predict_yield(
     crop_map = {
         "Rice": 0, "Maize": 1, "Cotton": 2, "Chickpea": 3,
         "Pigeon Peas": 4, "Groundnut": 5, "Soybean": 6, "Sugarcane": 7,
+        "Banana": 8, "Mango": 9, "Coconut": 10
     }
     crop_encoded = crop_map.get(crop_name, 0)
 
     features = np.array([[
-        crop_encoded, area_acres, soil_encoded,
+        crop_encoded, soil_encoded,
         nitrogen, phosphorus, potassium,
         temperature, humidity, rainfall,
     ]])
 
-    predicted = float(_model.predict(features)[0])
+    predicted_ypa = float(_model.predict(features)[0])
+
+    # Crop boundaries for sanity validation (quintals per acre)
+    crop_bounds = {
+        "Rice": (10.0, 60.0),
+        "Maize": (15.0, 80.0),
+        "Cotton": (4.0, 25.0),
+        "Chickpea": (5.0, 20.0),
+        "Pigeon Peas": (3.0, 15.0),
+        "Groundnut": (5.0, 25.0),
+        "Soybean": (4.0, 20.0),
+        "Sugarcane": (150.0, 800.0),
+        "Banana": (100.0, 400.0),
+        "Mango": (20.0, 100.0),
+        "Coconut": (50.0, 200.0)
+    }
+
+    min_bound, max_bound = crop_bounds.get(crop_name, (5.0, 150.0))
+    clamped_ypa = max(min(predicted_ypa, max_bound), min_bound)
+    predicted_total = clamped_ypa * area_acres
 
     return {
         "crop_name": crop_name,
-        "predicted_yield_quintals": round(predicted, 2),
-        "yield_per_acre": round(predicted / max(area_acres, 0.1), 2),
+        "predicted_yield_quintals": round(predicted_total, 2),
+        "yield_per_acre": round(clamped_ypa, 2),
     }
 
 

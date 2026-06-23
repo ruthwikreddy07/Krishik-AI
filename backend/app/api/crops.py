@@ -51,9 +51,15 @@ class CropRecommendRequest(BaseModel):
     rainfall: float
 
 
+class RecommendationItem(BaseModel):
+    crop_name: str
+    confidence: float
+
+
 class CropRecommendResponse(BaseModel):
     recommended_crop: str
     confidence: float
+    recommendations: list[RecommendationItem] = []
 
 
 # ── Endpoints ───────────────────────────────────────────────

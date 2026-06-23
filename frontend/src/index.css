@@ -506,3 +506,491 @@
 .animate-audio-bar {
   animation: wave-bar-bounce 0.8s ease-in-out infinite;
 }
+
+/* ============================================
+   PREMIUM OVERHAUL ADDITIONS
+   ============================================ */
+
+/* 1. Dynamic Canvas Particle Container */
+.particle-canvas {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* 2. Vercel-style Glassmorphism Cards */
+.glass-card-premium {
+  background: linear-gradient(135deg, rgba(13, 33, 20, 0.75) 0%, rgba(7, 18, 9, 0.95) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  border-radius: 18px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  overflow: hidden;
+}
+
+.glass-card-premium::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.4), transparent, rgba(56, 189, 248, 0.4));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glass-card-premium:hover::before {
+  opacity: 1;
+}
+
+.glass-card-premium:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(16, 185, 129, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(16, 185, 129, 0.2);
+}
+
+/* Accent version (Sky Blue for specific cards) */
+.glass-card-premium-blue {
+  background: linear-gradient(135deg, rgba(9, 26, 36, 0.75) 0%, rgba(5, 13, 20, 0.95) 100%);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 18px;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  overflow: hidden;
+}
+
+.glass-card-premium-blue::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.4), transparent, rgba(167, 139, 250, 0.4));
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.glass-card-premium-blue:hover::before {
+  opacity: 1;
+}
+
+.glass-card-premium-blue:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(56, 189, 248, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 24px rgba(56, 189, 248, 0.2);
+}
+
+/* 3. Floating Animations for Hero Widgets */
+@keyframes float-widget-y {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-12px) rotate(1deg);
+  }
+}
+
+@keyframes float-widget-y-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(10px) rotate(-1deg);
+  }
+}
+
+.animate-float-widget-1 {
+  animation: float-widget-y 6s ease-in-out infinite;
+}
+
+.animate-float-widget-2 {
+  animation: float-widget-y-reverse 7s ease-in-out infinite;
+}
+
+.animate-float-widget-3 {
+  animation: float-widget-y 8s ease-in-out infinite;
+}
+
+/* 4. Weather Radar Ripple Animations */
+@keyframes radar-ripple {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+
+.radar-circle {
+  position: absolute;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+}
+
+.radar-circle-active-1 {
+  animation: radar-ripple 2.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+}
+
+.radar-circle-active-2 {
+  animation: radar-ripple 2.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  animation-delay: 0.8s;
+}
+
+.radar-circle-active-3 {
+  animation: radar-ripple 2.5s cubic-bezier(0.1, 0.8, 0.3, 1) infinite;
+  animation-delay: 1.6s;
+}
+
+/* 5. Leaf Hotspot & Pathology Spot Magnifier */
+.leaf-hotspot {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.leaf-hotspot:hover {
+  fill: #ffffff !important;
+  filter: drop-shadow(0 0 8px #ffffff);
+}
+
+@keyframes pulse-hotspot {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+.hotspot-pulse {
+  transform-origin: center;
+  animation: pulse-hotspot 2s ease-in-out infinite;
+}
+
+.zoom-magnifier {
+  border: 2px solid rgba(16, 185, 129, 0.4);
+  background: radial-gradient(circle, rgba(7, 18, 9, 0.95) 40%, rgba(16, 185, 129, 0.15) 100%);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.85), 0 0 20px rgba(16, 185, 129, 0.3);
+}
+
+/* 6. Neon Line Drawing for Mandi prices */
+@keyframes neon-trace {
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.mandi-chart-path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: neon-trace 2.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* ============================================
+   HOW IT WORKS — ULTRA PREMIUM SCI-FI ICONS
+   ============================================ */
+
+.how-step-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 32px 20px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(13, 33, 20, 0.4) 0%, rgba(7, 18, 9, 0.85) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.06);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  width: 100%;
+}
+
+.how-step-card:hover {
+  transform: translateY(-10px);
+  border-color: var(--step-color);
+  background: linear-gradient(180deg, rgba(16, 185, 129, 0.05) 0%, rgba(7, 18, 9, 0.95) 100%);
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.6), 
+    0 0 35px var(--step-glow-half);
+}
+
+/* Outer rotating ring */
+.how-step-halo {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 1.5px dashed var(--step-color);
+  opacity: 0.25;
+  animation: spin-clockwise 24s infinite linear;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.how-step-card:hover .how-step-halo {
+  opacity: 0.9;
+  animation: spin-clockwise 8s infinite linear;
+  transform: scale(1.15);
+}
+
+/* Inner counter-rotating ring */
+.how-step-halo-inner {
+  position: absolute;
+  width: 78px;
+  height: 78px;
+  border-radius: 50%;
+  border: 1px dotted rgba(255, 255, 255, 0.15);
+  opacity: 0.15;
+  animation: spin-counter-clockwise 18s infinite linear;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+.how-step-card:hover .how-step-halo-inner {
+  opacity: 0.6;
+  animation: spin-counter-clockwise 6s infinite linear;
+  transform: scale(1.1);
+  border-color: var(--step-color);
+}
+
+/* Centered Icon Glass Plate */
+.how-step-icon-container {
+  position: relative;
+  width: 66px;
+  height: 66px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--step-border);
+  box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.02);
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.how-step-card:hover .how-step-icon-container {
+  transform: scale(1.08) rotate(5deg);
+  box-shadow: 
+    0 12px 24px var(--step-glow-half), 
+    inset 0 0 20px rgba(255, 255, 255, 0.06);
+  border-color: var(--step-color);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* Blur glow behind the icon */
+.how-step-pulse {
+  position: absolute;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: var(--step-color);
+  filter: blur(24px);
+  opacity: 0.12;
+  transition: all 0.5s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.how-step-card:hover .how-step-pulse {
+  opacity: 0.45;
+  filter: blur(18px);
+  transform: scale(1.5);
+}
+
+/* Glowing Flow Connectors */
+.step-flow-line {
+  position: relative;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%);
+  width: 100%;
+}
+
+.step-flow-pulse {
+  position: absolute;
+  top: -3.5px;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--pulse-color, #10b981);
+  box-shadow: 0 0 12px 4px var(--pulse-color, #10b981);
+  animation: flow-horizontal 3s infinite linear;
+}
+
+/* Step Label Badge */
+.how-step-badge {
+  font-family: var(--font-heading);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--step-color);
+  background: var(--step-bg);
+  border: 1px solid var(--step-border);
+  padding: 4px 12px;
+  border-radius: 9999px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.how-step-card:hover .how-step-badge {
+  box-shadow: 0 0 12px var(--step-glow-half);
+  border-color: var(--step-color);
+}
+
+@keyframes flow-horizontal {
+  0% { left: -10%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { left: 110%; opacity: 0; }
+}
+
+@keyframes spin-clockwise {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes spin-counter-clockwise {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+/* ============================================
+   FEATURE CARDS UPGRADED PREMIUM ICONS
+   ============================================ */
+
+.feat-icon-wrapper {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.feat-icon-halo {
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  border: 1px dashed var(--feat-color);
+  opacity: 0.15;
+  animation: spin-clockwise 25s infinite linear;
+  transition: all 0.4s ease;
+  pointer-events: none;
+}
+
+.glass-card:hover .feat-icon-halo {
+  opacity: 0.75;
+  animation: spin-clockwise 8s infinite linear;
+  transform: scale(1.1);
+  border-radius: 50%;
+}
+
+.feat-icon-container {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--feat-bg);
+  border: 1px solid var(--feat-border);
+  box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.01);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  z-index: 2;
+}
+
+.glass-card:hover .feat-icon-container {
+  transform: scale(1.05) rotate(-3deg);
+  box-shadow: 0 8px 16px var(--feat-glow-half), inset 0 0 10px rgba(255, 255, 255, 0.03);
+  border-color: var(--feat-color);
+}
+
+.feat-icon-pulse {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--feat-color);
+  filter: blur(14px);
+  opacity: 0.1;
+  transition: all 0.4s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.glass-card:hover .feat-icon-pulse {
+  opacity: 0.35;
+  filter: blur(10px);
+  transform: scale(1.3);
+}
+
+/* ============================================
+   SANDBOX HIGH-TECH TAB SWITCHES
+   ============================================ */
+
+.sandbox-tab-btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(255, 255, 255, 0.015);
+  border: 1px solid var(--border-card);
+  color: var(--text-secondary);
+  overflow: hidden;
+}
+
+.sandbox-tab-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0%, transparent 100%);
+  opacity: 1;
+  transition: opacity 0.3s;
+}
+
+.sandbox-tab-btn:hover {
+  color: #ffffff;
+  border-color: rgba(16, 185, 129, 0.3);
+  background: rgba(16, 185, 129, 0.03);
+  transform: translateY(-2px);
+}
+
+.sandbox-tab-btn.active {
+  color: var(--tab-color);
+  background: var(--tab-bg);
+  border-color: var(--tab-color);
+  box-shadow: 0 6px 20px var(--tab-glow-half), inset 0 0 10px rgba(255, 255, 255, 0.02);
+}
+
+.sandbox-tab-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--tab-color);
+  box-shadow: 0 0 10px var(--tab-color);
+  animation: pulse-hotspot 1.5s infinite;
+}

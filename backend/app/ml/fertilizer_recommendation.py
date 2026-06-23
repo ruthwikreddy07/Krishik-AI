@@ -34,6 +34,7 @@ FERTILIZER_LABELS = {
     4: "NPK 28:28",
     5: "DAP (Di-Ammonium Phosphate)",
     6: "Urea",
+    7: "MOP (Muriate of Potash)",
 }
 
 

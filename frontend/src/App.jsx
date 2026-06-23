@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, AppContext } from './context/AppContext';
 import { Sidebar } from './components/Sidebar';
 import { Navbar } from './components/Navbar';
+import { Translate } from './components/Translate';
 import { Landing } from './pages/Landing';
 import { Dashboard } from './pages/Dashboard';
 import { MyFarm } from './pages/MyFarm';
@@ -14,6 +15,7 @@ import { Schemes } from './pages/Schemes';
 import { AIChatbot } from './pages/AIChatbot';
 import { Notifications } from './pages/Notifications';
 import { Profile } from './pages/Profile';
+import { PestRisk } from './pages/PestRisk';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -38,7 +40,7 @@ const ProtectedLayout = ({ children }) => {
 
         {/* Dynamic Route Content */}
         <main className="page-fade-in" style={{ flexGrow: 1, padding: '32px', overflowY: 'auto', maxHeight: 'calc(100vh - 64px)' }}>
-          {children}
+          <Translate>{children}</Translate>
         </main>
       </div>
     </div>
@@ -76,6 +78,7 @@ function AppContent() {
         <Route path="/market" element={<ProtectedLayout><Market /></ProtectedLayout>} />
         <Route path="/schemes" element={<ProtectedLayout><Schemes /></ProtectedLayout>} />
         <Route path="/chat" element={<ProtectedLayout><AIChatbot /></ProtectedLayout>} />
+        <Route path="/pest-risk" element={<ProtectedLayout><PestRisk /></ProtectedLayout>} />
         <Route path="/notifications" element={<ProtectedLayout><Notifications /></ProtectedLayout>} />
         <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />
 

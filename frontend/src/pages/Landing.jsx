@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { sendOtp, verifyOtp, registerFarmer } from '../services/api';
@@ -7,7 +7,7 @@ import {
   Sprout, Phone, ShieldCheck, ArrowRight, Sparkles,
   CloudSun, ScanLine, TrendingUp, FileText, MessageSquare,
   ChevronRight, Star, ExternalLink, UserPlus, CheckCircle2, AlertCircle,
-  Volume2
+  Volume2, Smartphone, Map, Cpu, Coins, Wheat, Flower, Flame, Leaf
 } from 'lucide-react';
 import heroVisual from '../assets/hero-visual.png';
 
@@ -117,6 +117,126 @@ export const Landing = () => {
   const navigate = useNavigate();
   const lt = localT[language] || localT['en'];
 
+  // Interactive Particle Canvas Background Hook
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let animationFrameId;
+
+    let width = (canvas.width = window.innerWidth);
+    let height = (canvas.height = window.innerHeight);
+
+    const handleResize = () => {
+      if (!canvasRef.current) return;
+      width = canvasRef.current.width = window.innerWidth;
+      height = canvasRef.current.height = window.innerHeight;
+    };
+    window.addEventListener('resize', handleResize);
+
+    const particles = [];
+    const particleCount = Math.min(20, Math.floor((width * height) / 70000));
+
+    let mouse = { x: null, y: null, radius: 120 };
+    const handleMouseMove = (e) => {
+      mouse.x = e.clientX;
+      mouse.y = e.clientY;
+    };
+    const handleMouseLeave = () => {
+      mouse.x = null;
+      mouse.y = null;
+    };
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseleave', handleMouseLeave);
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.06;
+        this.vy = (Math.random() - 0.5) * 0.06;
+        this.radius = Math.random() * 1.5 + 0.8;
+        const colors = [
+          'rgba(16, 185, 129, 0.12)',  // emerald
+          'rgba(56, 189, 248, 0.08)',  // sky
+          'rgba(251, 191, 36, 0.06)'   // amber
+        ];
+        this.color = colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > width) this.vx = -this.vx;
+        if (this.y < 0 || this.y > height) this.vy = -this.vy;
+
+        if (mouse.x !== null) {
+          const dx = mouse.x - this.x;
+          const dy = mouse.y - this.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < mouse.radius) {
+            const force = (mouse.radius - dist) / mouse.radius;
+            this.x += (dx / dist) * force * 0.15;
+            this.y += (dy / dist) * force * 0.15;
+          }
+        }
+      }
+
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    const connect = () => {
+      for (let a = 0; a < particles.length; a++) {
+        for (let b = a + 1; b < particles.length; b++) {
+          const dx = particles[a].x - particles[b].x;
+          const dy = particles[a].y - particles[b].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < 80) {
+            const opacity = ((80 - dist) / 80) * 0.05;
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(16, 185, 129, ${opacity})`;
+            ctx.lineWidth = 0.4;
+            ctx.moveTo(particles[a].x, particles[a].y);
+            ctx.lineTo(particles[b].x, particles[b].y);
+            ctx.stroke();
+          }
+        }
+      }
+    };
+
+    const animate = () => {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach((p) => {
+        p.update();
+        p.draw();
+      });
+      connect();
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    animate();
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseleave', handleMouseLeave);
+      cancelAnimationFrame(animationFrameId);
+    };
+  }, []);
+
   const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState('');
   const [step, setStep] = useState(1); // 1=phone, 2=otp, 3=register
@@ -137,9 +257,11 @@ export const Landing = () => {
   const [selectedSandboxLeaf, setSelectedSandboxLeaf] = useState('paddy'); // 'paddy' | 'cotton' | 'chilli'
   const [isSandboxScanning, setIsSandboxScanning] = useState(false);
   const [sandboxScanDone, setSandboxScanDone] = useState(false);
+  const [hoveredSpot, setHoveredSpot] = useState(null);
 
   // Market Sandbox states
   const [selectedSandboxCrop, setSelectedSandboxCrop] = useState('rice'); // 'rice' | 'cotton' | 'turmeric'
+  const [scrubPoint, setScrubPoint] = useState(null);
 
   // Weather Sandbox states
   const [isSandboxAudioPlaying, setIsSandboxAudioPlaying] = useState(false);
@@ -409,11 +531,44 @@ export const Landing = () => {
 
   // How it works steps
   const steps = [
-    { icon: "📱", title: "Register Phone", desc: "Login securely with OTP in seconds" },
-    { icon: "🌾", title: "Set Up Your Farm", desc: "Enter soil type, land & water details" },
-    { icon: "🤖", title: "AI Analyses", desc: "Get smart crop & weather advisory" },
-    { icon: "💰", title: "Maximize Yield", desc: "Sell at right time, right market" },
+    { 
+      icon: Smartphone, 
+      title: "Register Phone", 
+      desc: "Login securely with OTP in seconds", 
+      color: "#38bdf8", 
+      border: "rgba(56, 189, 248, 0.15)",
+      bg: "rgba(56, 189, 248, 0.06)",
+      glowHalf: "rgba(56, 189, 248, 0.25)"
+    },
+    { 
+      icon: Map, 
+      title: "Set Up Your Farm", 
+      desc: "Enter soil type, land & water details", 
+      color: "#34d399", 
+      border: "rgba(52, 211, 153, 0.15)",
+      bg: "rgba(52, 211, 153, 0.06)",
+      glowHalf: "rgba(52, 211, 153, 0.25)"
+    },
+    { 
+      icon: Cpu, 
+      title: "AI Analyses", 
+      desc: "Get smart crop & weather advisory", 
+      color: "#a78bfa", 
+      border: "rgba(167, 139, 250, 0.15)",
+      bg: "rgba(167, 139, 250, 0.06)",
+      glowHalf: "rgba(167, 139, 250, 0.25)"
+    },
+    { 
+      icon: Coins, 
+      title: "Maximize Yield", 
+      desc: "Sell at right time, right market", 
+      color: "#fbbf24", 
+      border: "rgba(251, 191, 36, 0.15)",
+      bg: "rgba(251, 191, 36, 0.06)",
+      glowHalf: "rgba(251, 191, 36, 0.25)"
+    },
   ];
+
 
   // Feature cards with unique colors
   const features = [
@@ -456,7 +611,8 @@ export const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen particle-bg" style={{ background: 'var(--bg-primary)', fontFamily: 'var(--font-body)' }}>
+    <div className="min-h-screen particle-bg relative" style={{ background: 'var(--bg-primary)', fontFamily: 'var(--font-body)', overflowX: 'hidden' }}>
+      <canvas ref={canvasRef} className="particle-canvas" style={{ position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 1 }} />
 
       {/* ===================== NAVBAR ===================== */}
       <nav className="nav-glass fixed top-0 left-0 right-0 z-50 px-6 lg:px-12">
@@ -472,12 +628,25 @@ export const Landing = () => {
 
           {/* Nav Links — Desktop */}
           <div className="hidden md:flex items-center gap-8">
-            {['Features', 'How It Works', 'Schemes', 'Market Prices'].map(link => (
-              <a key={link} href="#" style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500, transition: 'color 0.2s' }}
+            {[
+              { label: 'Features', id: 'features' },
+              { label: 'How It Works', id: 'how-it-works' },
+              { label: 'Schemes', id: 'features' },
+              { label: 'Market Prices', id: 'sandbox', action: () => setSandboxTab('market') }
+            ].map(link => (
+              <a 
+                key={link.label} 
+                href={`#${link.id}`} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (link.action) link.action();
+                  document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 500, transition: 'color 0.2s' }}
                 onMouseEnter={e => e.target.style.color = '#ffffff'}
                 onMouseLeave={e => e.target.style.color = 'var(--text-secondary)'}
               >
-                {link}
+                {link.label}
               </a>
             ))}
           </div>
@@ -538,7 +707,7 @@ export const Landing = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
 
             {/* Left: Text Content */}
-            <div className="lg:col-span-6 space-y-8">
+            <div className="lg:col-span-6 space-y-8 relative">
 
               {/* Pill badge */}
               <div>
@@ -587,13 +756,15 @@ export const Landing = () => {
                   </div>
                 ))}
               </div>
+
             </div>
 
             {/* Right: Hero Visual */}
-            <div className="lg:col-span-6 flex justify-center relative">
+             <div className="lg:col-span-6 flex justify-center relative">
               <div className="relative w-full max-w-[580px]">
                 {/* Glow behind image */}
                 <div style={{ position: 'absolute', inset: '-30px', background: 'radial-gradient(ellipse at center, rgba(16,185,129,0.15) 0%, transparent 70%)', borderRadius: '9999px', zIndex: 0 }} />
+                
                 <img
                   src={heroVisual}
                   alt="AI-powered smart farming visualization"
@@ -622,7 +793,7 @@ export const Landing = () => {
       </div>
 
       {/* ===================== HOW IT WORKS ===================== */}
-      <section style={{ padding: '100px 0', background: 'var(--bg-secondary)' }}>
+      <section id="how-it-works" style={{ padding: '100px 0', background: 'var(--bg-secondary)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
           {/* Section header */}
@@ -639,31 +810,75 @@ export const Landing = () => {
           </div>
 
           {/* Steps */}
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 md:gap-4">
-            {steps.map((step, i) => (
-              <React.Fragment key={i}>
-                <div className="flex flex-col items-center text-center max-w-[180px] mx-auto md:mx-0 space-y-3">
-                  <div style={{
-                    width: '64px', height: '64px', borderRadius: '16px',
-                    background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.25)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px'
-                  }}>
-                    {step.icon}
+          <div className="flex flex-col md:flex-row items-stretch justify-between gap-6 md:gap-3">
+            {steps.map((step, i) => {
+              const StepIcon = step.icon;
+              return (
+                <React.Fragment key={i}>
+                  <div 
+                    className="how-step-card flex-1 max-w-xs mx-auto md:mx-0"
+                    style={{
+                      '--step-color': step.color,
+                      '--step-border': step.border,
+                      '--step-bg': step.bg,
+                      '--step-glow-half': step.glowHalf
+                    }}
+                    onMouseMove={(e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = e.clientX - rect.left;
+                      const y = e.clientY - rect.top;
+                      e.currentTarget.style.setProperty('--mouse-x', `${x}px`);
+                      e.currentTarget.style.setProperty('--mouse-y', `${y}px`);
+                    }}
+                  >
+                    {/* Badge */}
+                    <span className="how-step-badge">
+                      Step 0{i + 1}
+                    </span>
+
+                    {/* Futuristic rotating rings & aura */}
+                    <div className="relative w-28 h-28 flex items-center justify-center mb-4">
+                      <div className="how-step-halo" />
+                      <div className="how-step-halo-inner" />
+                      <div className="how-step-pulse" />
+                      <div className="how-step-icon-container">
+                        <StepIcon 
+                          className="w-7 h-7" 
+                          style={{ 
+                            color: step.color,
+                            filter: `drop-shadow(0 0 6px ${step.color})`
+                          }} 
+                        />
+                      </div>
+                    </div>
+
+                    <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: '#ffffff', fontSize: '16px', marginBottom: '8px' }}>
+                      {step.title}
+                    </h3>
+                    <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                      {step.desc}
+                    </p>
                   </div>
-                  <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, color: '#ffffff', fontSize: '15px' }}>{step.title}</h3>
-                  <p style={{ fontSize: '13px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>{step.desc}</p>
-                </div>
-                {i < steps.length - 1 && (
-                  <div className="step-arrow hidden md:block text-2xl">→</div>
-                )}
-              </React.Fragment>
-            ))}
+
+                  {i < steps.length - 1 && (
+                    <div className="hidden md:flex items-center justify-center flex-grow mx-2 min-w-[30px]" style={{ maxWidth: '120px' }}>
+                      <div className="step-flow-line">
+                        <div 
+                          className="step-flow-pulse" 
+                          style={{ '--pulse-color': steps[i + 1].color }} 
+                        />
+                      </div>
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </div>
         </div>
       </section>
 
       {/* ===================== LIVE INTERACTIVE PLAYGROUNDS ===================== */}
-      <section style={{ padding: '100px 0', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}>
+      <section id="sandbox" style={{ padding: '100px 0', borderTop: '1px solid var(--border-subtle)', background: 'var(--bg-primary)' }}>
         <div className="max-w-7xl mx-auto px-6 lg:px-12">
 
           {/* Section header */}
@@ -684,9 +899,9 @@ export const Landing = () => {
           {/* Tab switches */}
           <div className="flex flex-wrap justify-center gap-3 mb-10">
             {[
-              { id: 'disease', label: lt.sandboxTabDisease, icon: ScanLine },
-              { id: 'market', label: lt.sandboxTabMarket, icon: TrendingUp },
-              { id: 'weather', label: lt.sandboxTabWeather, icon: CloudSun }
+              { id: 'disease', label: lt.sandboxTabDisease, icon: ScanLine, color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)' },
+              { id: 'market', label: lt.sandboxTabMarket, icon: TrendingUp, color: '#fbbf24', bg: 'rgba(251, 191, 36, 0.12)' },
+              { id: 'weather', label: lt.sandboxTabWeather, icon: CloudSun, color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.12)' }
             ].map(tab => {
               const TabIcon = tab.icon;
               const isActive = sandboxTab === tab.id;
@@ -694,34 +909,15 @@ export const Landing = () => {
                 <button
                   key={tab.id}
                   onClick={() => setSandboxTab(tab.id)}
+                  className={`sandbox-tab-btn ${isActive ? 'active' : ''}`}
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '12px 24px',
-                    borderRadius: '12px',
-                    fontSize: '14px',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    transition: 'all 0.3s ease',
-                    background: isActive ? 'rgba(16, 185, 129, 0.15)' : 'rgba(255,255,255,0.02)',
-                    border: isActive ? '1px solid #10b981' : '1px solid var(--border-card)',
-                    color: isActive ? '#10b981' : 'var(--text-secondary)'
-                  }}
-                  onMouseEnter={e => {
-                    if (!isActive) {
-                      e.target.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-                      e.target.style.color = '#ffffff';
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (!isActive) {
-                      e.target.style.borderColor = 'var(--border-card)';
-                      e.target.style.color = 'var(--text-secondary)';
-                    }
+                    '--tab-color': tab.color,
+                    '--tab-bg': tab.bg,
+                    '--tab-glow-half': tab.bg.replace('0.12', '0.25')
                   }}
                 >
-                  <TabIcon style={{ width: '16px', height: '16px' }} />
+                  {isActive && <div className="sandbox-tab-indicator" />}
+                  <TabIcon style={{ width: '16px', height: '16px', color: isActive ? tab.color : 'var(--text-secondary)' }} />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -743,34 +939,45 @@ export const Landing = () => {
 
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { id: 'paddy', label: language === 'te' ? 'వరి (Paddy)' : 'Paddy Leaf', emoji: '🌾' },
-                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton Leaf', emoji: '☁️' },
-                      { id: 'chilli', label: language === 'te' ? 'మిరప (Chilli)' : 'Chilli Leaf', emoji: '🌶️' }
-                    ].map(leaf => (
-                      <button
-                        key={leaf.id}
-                        onClick={() => handleSandboxLeafChange(leaf.id)}
-                        disabled={isSandboxScanning}
-                        style={{
-                          padding: '16px 12px',
-                          borderRadius: '12px',
-                          border: selectedSandboxLeaf === leaf.id ? '2px solid #10b981' : '1px solid var(--border-card)',
-                          background: selectedSandboxLeaf === leaf.id ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)',
-                          color: selectedSandboxLeaf === leaf.id ? '#10b981' : 'var(--text-secondary)',
-                          cursor: isSandboxScanning ? 'not-allowed' : 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 700,
-                          fontSize: '13px'
-                        }}
-                      >
-                        <span style={{ fontSize: '24px' }}>{leaf.emoji}</span>
-                        <span>{leaf.label}</span>
-                      </button>
-                    ))}
+                      { id: 'paddy', label: language === 'te' ? 'వరి (Paddy)' : 'Paddy Leaf', icon: Wheat, iconColor: '#34d399' },
+                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton Leaf', icon: Flower, iconColor: '#38bdf8' },
+                      { id: 'chilli', label: language === 'te' ? 'మిరప (Chilli)' : 'Chilli Leaf', icon: Flame, iconColor: '#f43f5e' }
+                    ].map(leaf => {
+                      const LeafIcon = leaf.icon;
+                      return (
+                        <button
+                          key={leaf.id}
+                          onClick={() => handleSandboxLeafChange(leaf.id)}
+                          disabled={isSandboxScanning}
+                          style={{
+                            padding: '16px 12px',
+                            borderRadius: '12px',
+                            border: selectedSandboxLeaf === leaf.id ? '2px solid #10b981' : '1px solid var(--border-card)',
+                            background: selectedSandboxLeaf === leaf.id ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)',
+                            color: selectedSandboxLeaf === leaf.id ? '#10b981' : 'var(--text-secondary)',
+                            cursor: isSandboxScanning ? 'not-allowed' : 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontWeight: 700,
+                            fontSize: '13px'
+                          }}
+                        >
+                          <LeafIcon 
+                            style={{ 
+                              width: '24px', 
+                              height: '24px', 
+                              color: selectedSandboxLeaf === leaf.id ? '#10b981' : leaf.iconColor,
+                              filter: selectedSandboxLeaf === leaf.id ? 'drop-shadow(0 0 4px #10b981)' : 'none',
+                              transition: 'all 0.2s'
+                            }} 
+                          />
+                          <span>{leaf.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <button
@@ -825,8 +1032,84 @@ export const Landing = () => {
                             transform={`rotate(${spot.rot} ${spot.cx} ${spot.cy})`}
                           />
                         ))}
+                        {/* Hotspot pins */}
+                        {sandboxLeafInfo[selectedSandboxLeaf].spots.map((spot, i) => (
+                          <circle
+                            key={`pin-${i}`}
+                            cx={spot.cx}
+                            cy={spot.cy}
+                            r="4.5"
+                            fill="#f43f5e"
+                            stroke="#ffffff"
+                            strokeWidth="1.5"
+                            className="leaf-hotspot hotspot-pulse"
+                            style={{
+                              cursor: 'pointer',
+                              filter: 'drop-shadow(0 0 4px rgba(244,63,94,0.6))',
+                              transformOrigin: `${spot.cx}px ${spot.cy}px`
+                            }}
+                            onMouseEnter={() => setHoveredSpot({ spot, index: i })}
+                            onMouseLeave={() => setHoveredSpot(null)}
+                            onClick={() => {
+                              if (!isSandboxScanning) {
+                                handleSandboxScan();
+                              }
+                            }}
+                          />
+                        ))}
                       </svg>
                     </div>
+
+                    {/* Magnifier preview bubble */}
+                    {hoveredSpot && (
+                      <div 
+                        className="absolute top-3 right-3 w-24 h-24 rounded-full zoom-magnifier flex flex-col items-center justify-center p-2 text-center overflow-hidden z-20 border"
+                        style={{ pointerEvents: 'none' }}
+                      >
+                        <span className="text-[7px] uppercase tracking-wider text-amber-400 font-bold">Pathogen zoom</span>
+                        <svg className="w-8 h-8 mt-1 animate-pulse" viewBox="0 0 40 40">
+                          <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(16,185,129,0.2)" strokeWidth="1"/>
+                          {selectedSandboxLeaf === 'paddy' && (
+                            <>
+                              <circle cx="15" cy="18" r="1.5" fill="#f87171"/>
+                              <circle cx="22" cy="15" r="2" fill="#f87171"/>
+                              <circle cx="25" cy="24" r="1.5" fill="#f87171"/>
+                              <path d="M 12 28 Q 20 22 28 28" fill="none" stroke="#ef4444" strokeWidth="1"/>
+                            </>
+                          )}
+                          {selectedSandboxLeaf === 'cotton' && (
+                            <>
+                              <path d="M 14 20 C 18 10, 22 30, 26 20" fill="none" stroke="#38bdf8" strokeWidth="1.5" strokeDasharray="1 1"/>
+                              <circle cx="12" cy="12" r="1" fill="#ffffff"/>
+                              <circle cx="28" cy="26" r="1" fill="#ffffff"/>
+                            </>
+                          )}
+                          {selectedSandboxLeaf === 'chilli' && (
+                            <>
+                              <circle cx="20" cy="20" r="4" fill="none" stroke="#f43f5e" strokeWidth="1" strokeDasharray="2 2"/>
+                              <circle cx="12" cy="18" r="3" fill="none" stroke="#f43f5e" strokeWidth="0.8"/>
+                              <circle cx="27" cy="22" r="3" fill="none" stroke="#f43f5e" strokeWidth="0.8"/>
+                            </>
+                          )}
+                        </svg>
+                        <span className="text-[7px] text-white font-mono mt-1">
+                          {selectedSandboxLeaf === 'paddy' ? 'Magnaporthe' : selectedSandboxLeaf === 'cotton' ? 'CLCuV-Virus' : 'Leveillula'}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Scanning Matrix Overlay */}
+                    {isSandboxScanning && (
+                      <div className="absolute bottom-3 left-3 right-3 bg-black/85 border border-emerald-500/25 rounded p-2.5 font-mono text-[9px] text-emerald-400 space-y-0.5 z-20 shadow-md">
+                        <div className="flex justify-between items-center border-b border-emerald-500/25 pb-1 mb-1">
+                          <span className="font-bold">[MOBILE_NET_V3_RUN]</span>
+                          <span className="animate-pulse text-emerald-300">SCANNING...</span>
+                        </div>
+                        <div>&gt; Extracting Leaf Feature Map Vectors...</div>
+                        <div>&gt; Pathogen Density Ratio: {(Math.random() * 0.4 + 0.5).toFixed(3)}</div>
+                        <div className="text-[8px] text-emerald-500/60 truncate">&gt; Spot Matrix: {JSON.stringify(hoveredSpot?.spot || sandboxLeafInfo[selectedSandboxLeaf].spots[0])}</div>
+                      </div>
+                    )}
 
                     {/* Laser scan animation overlay */}
                     {isSandboxScanning && (
@@ -846,9 +1129,12 @@ export const Landing = () => {
 
                     {/* Initial status indicator */}
                     {!isSandboxScanning && !sandboxScanDone && (
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.12em', background: 'rgba(251,191,36,0.08)', padding: '4px 10px', borderRadius: '6px', border: '1px solid rgba(251,191,36,0.2)' }}>
+                          🔴 Click a red hotspot to scan lesion
+                        </span>
                         <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                          Sensor Offline — Awaiting Scan
+                          OR PRESS DIAGNOSE BUTTON
                         </span>
                       </div>
                     )}
@@ -913,33 +1199,44 @@ export const Landing = () => {
 
                   <div className="grid grid-cols-3 gap-3">
                     {[
-                      { id: 'rice', label: language === 'te' ? 'వరి (Rice)' : 'Paddy', emoji: '🌾' },
-                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton', emoji: '☁️' },
-                      { id: 'turmeric', label: language === 'te' ? 'పసుపు (Turmeric)' : 'Turmeric', emoji: '🌿' }
-                    ].map(crop => (
-                      <button
-                        key={crop.id}
-                        onClick={() => setSelectedSandboxCrop(crop.id)}
-                        style={{
-                          padding: '16px 12px',
-                          borderRadius: '12px',
-                          border: selectedSandboxCrop === crop.id ? '2px solid #fbbf24' : '1px solid var(--border-card)',
-                          background: selectedSandboxCrop === crop.id ? 'rgba(251, 191, 36, 0.08)' : 'rgba(255,255,255,0.02)',
-                          color: selectedSandboxCrop === crop.id ? '#fbbf24' : 'var(--text-secondary)',
-                          cursor: 'pointer',
-                          transition: 'all 0.2s',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: '6px',
-                          fontWeight: 700,
-                          fontSize: '13px'
-                        }}
-                      >
-                        <span style={{ fontSize: '24px' }}>{crop.emoji}</span>
-                        <span>{crop.label}</span>
-                      </button>
-                    ))}
+                      { id: 'rice', label: language === 'te' ? 'వరి (Rice)' : 'Paddy', icon: Wheat, iconColor: '#fbbf24' },
+                      { id: 'cotton', label: language === 'te' ? 'పత్తి (Cotton)' : 'Cotton', icon: Flower, iconColor: '#38bdf8' },
+                      { id: 'turmeric', label: language === 'te' ? 'పసుపు (Turmeric)' : 'Turmeric', icon: Leaf, iconColor: '#a78bfa' }
+                    ].map(crop => {
+                      const CropIcon = crop.icon;
+                      return (
+                        <button
+                          key={crop.id}
+                          onClick={() => setSelectedSandboxCrop(crop.id)}
+                          style={{
+                            padding: '16px 12px',
+                            borderRadius: '12px',
+                            border: selectedSandboxCrop === crop.id ? '2px solid #fbbf24' : '1px solid var(--border-card)',
+                            background: selectedSandboxCrop === crop.id ? 'rgba(251, 191, 36, 0.08)' : 'rgba(255,255,255,0.02)',
+                            color: selectedSandboxCrop === crop.id ? '#fbbf24' : 'var(--text-secondary)',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontWeight: 700,
+                            fontSize: '13px'
+                          }}
+                        >
+                          <CropIcon 
+                            style={{ 
+                              width: '24px', 
+                              height: '24px', 
+                              color: selectedSandboxCrop === crop.id ? '#fbbf24' : crop.iconColor,
+                              filter: selectedSandboxCrop === crop.id ? 'drop-shadow(0 0 4px #fbbf24)' : 'none',
+                              transition: 'all 0.2s'
+                            }} 
+                          />
+                          <span>{crop.label}</span>
+                        </button>
+                      );
+                    })}
                   </div>
 
                   <div style={{ background: 'rgba(251, 191, 36, 0.05)', border: '1px solid rgba(251, 191, 36, 0.25)', borderRadius: '12px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -989,61 +1286,136 @@ export const Landing = () => {
                     </div>
 
                     {/* SVG Curve drawing */}
-                    <div style={{ width: '100%', overflow: 'visible' }}>
-                      <svg viewBox="0 0 320 100" style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-                        <defs>
-                          <linearGradient id="chart-glow-grad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25" />
-                            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
-                          </linearGradient>
-                        </defs>
+                    {(() => {
+                      const history = sandboxMarketInfo[selectedSandboxCrop].history;
+                      const min = Math.min(...history);
+                      const max = Math.max(...history);
+                      const range = max - min || 1;
 
-                        {/* Grid lines */}
-                        <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
-                        <line x1="0" y1="50" x2="320" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
-                        <line x1="0" y1="80" x2="320" y2="80" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+                      const points = history.map((val, idx) => {
+                        const x = (idx * 320) / (history.length - 1);
+                        const y = 80 - ((val - min) * 60) / range;
+                        return { x, y };
+                      });
 
-                        {/* Graph Path */}
-                        {(() => {
-                          const history = sandboxMarketInfo[selectedSandboxCrop].history;
-                          const min = Math.min(...history);
-                          const max = Math.max(...history);
-                          const range = max - min || 1;
+                      const d = points.reduce((acc, p, idx) => {
+                        return acc + (idx === 0 ? `M ${p.x} ${p.y}` : ` L ${p.x} ${p.y}`);
+                      }, "");
 
-                          const points = history.map((val, idx) => {
-                            const x = (idx * 320) / (history.length - 1);
-                            const y = 80 - ((val - min) * 60) / range;
-                            return { x, y };
-                          });
+                      const areaD = `${d} L ${points[points.length - 1].x} 80 L ${points[0].x} 80 Z`;
 
-                          let d = `M ${points[0].x} ${points[0].y}`;
-                          for (let i = 1; i < points.length; i++) {
-                            d += ` L ${points[i].x} ${points[i].y}`;
+                      const handleMouseMove = (e) => {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const relativeX = ((e.clientX - rect.left) / rect.width) * 320;
+                        
+                        let closestIdx = 0;
+                        let minDiff = Infinity;
+                        points.forEach((p, idx) => {
+                          const diff = Math.abs(p.x - relativeX);
+                          if (diff < minDiff) {
+                            minDiff = diff;
+                            closestIdx = idx;
                           }
+                        });
 
-                          let areaD = `${d} L ${points[points.length - 1].x} 80 L ${points[0].x} 80 Z`;
+                        const cp = points[closestIdx];
+                        const dates = ["11 Jun", "12 Jun", "13 Jun", "14 Jun", "15 Jun", "16 Jun", "17 Jun"];
+                        setScrubPoint({
+                          x: cp.x,
+                          y: cp.y,
+                          index: closestIdx,
+                          price: history[closestIdx],
+                          date: dates[closestIdx]
+                        });
+                      };
 
-                          return (
-                            <>
-                              <path d={areaD} fill="url(#chart-glow-grad)" style={{ transition: 'all 0.3s' }} />
-                              <path d={d} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ transition: 'all 0.3s' }} />
-                              {points.map((p, idx) => (
-                                <circle
-                                  key={idx}
-                                  cx={p.x}
-                                  cy={p.y}
-                                  r="3.5"
-                                  fill="#071209"
-                                  stroke="#fbbf24"
-                                  strokeWidth="1.5"
-                                  style={{ transition: 'all 0.3s' }}
+                      return (
+                        <div style={{ position: 'relative', width: '100%', overflow: 'visible' }}>
+                          <svg 
+                            viewBox="0 0 320 100" 
+                            style={{ width: '100%', height: 'auto', overflow: 'visible', cursor: 'crosshair' }}
+                            onMouseMove={handleMouseMove}
+                            onMouseLeave={() => setScrubPoint(null)}
+                          >
+                            <defs>
+                              <linearGradient id="chart-glow-grad" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.25" />
+                                <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.0" />
+                              </linearGradient>
+                            </defs>
+
+                            {/* Grid lines */}
+                            <line x1="0" y1="20" x2="320" y2="20" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                            <line x1="0" y1="50" x2="320" y2="50" stroke="rgba(255,255,255,0.03)" strokeWidth="1" strokeDasharray="3 3" />
+                            <line x1="0" y1="80" x2="320" y2="80" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
+
+                            {/* Graph Area & Line */}
+                            <path key={`area-${selectedSandboxCrop}`} d={areaD} fill="url(#chart-glow-grad)" style={{ transition: 'all 0.3s' }} />
+                            <path key={`line-${selectedSandboxCrop}`} d={d} fill="none" stroke="#fbbf24" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="mandi-chart-path" />
+                            
+                            {/* Standard Points */}
+                            {points.map((p, idx) => (
+                              <circle
+                                key={idx}
+                                cx={p.x}
+                                cy={p.y}
+                                r="3.5"
+                                fill="#071209"
+                                stroke="#fbbf24"
+                                strokeWidth="1.5"
+                                style={{ transition: 'all 0.3s' }}
+                              />
+                            ))}
+
+                            {/* Hover Scrub vertical tracker */}
+                            {scrubPoint && (
+                              <>
+                                <line 
+                                  x1={scrubPoint.x} 
+                                  y1="10" 
+                                  x2={scrubPoint.x} 
+                                  y2="80" 
+                                  stroke="rgba(251, 191, 36, 0.45)" 
+                                  strokeWidth="1.5" 
+                                  strokeDasharray="3 3" 
                                 />
-                              ))}
-                            </>
-                          );
-                        })()}
-                      </svg>
-                    </div>
+                                <circle 
+                                  cx={scrubPoint.x} 
+                                  cy={scrubPoint.y} 
+                                  r="6" 
+                                  fill="#fbbf24" 
+                                  stroke="#071209" 
+                                  strokeWidth="2" 
+                                  className="animate-pulse" 
+                                />
+                              </>
+                            )}
+                          </svg>
+
+                          {/* Hover Tooltip Overlay */}
+                          {scrubPoint && (
+                            <div 
+                              className="absolute glass-card p-2 text-[10px] pointer-events-none shadow-lg z-20 border"
+                              style={{
+                                left: `${(scrubPoint.x / 320) * 100}%`,
+                                top: `${(scrubPoint.y / 100) * 100 - 32}%`,
+                                transform: 'translate(-50%, -100%)',
+                                whiteSpace: 'nowrap',
+                                borderColor: 'rgba(251, 191, 36, 0.5)',
+                                background: 'rgba(7, 18, 9, 0.95)',
+                                color: '#ffffff',
+                                borderRadius: '8px',
+                                padding: '6px 10px',
+                                boxShadow: '0 8px 24px rgba(0,0,0,0.6)'
+                              }}
+                            >
+                              <div style={{ fontWeight: 800, color: '#fbbf24', fontSize: '11px', fontFamily: 'monospace' }}>₹{scrubPoint.price.toLocaleString()}/q</div>
+                              <div style={{ color: 'var(--text-muted)', fontSize: '9px', fontWeight: 600, marginTop: '2px' }}>{scrubPoint.date}</div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1117,7 +1489,29 @@ export const Landing = () => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '42px' }}>🌦️</div>
+                    {/* Glowing radar concentric waves container */}
+                    <div style={{ position: 'relative', width: '100px', height: '100px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '4px 0' }}>
+                      {isSandboxAudioPlaying && (
+                        <>
+                          <div className="radar-circle radar-circle-active-1" style={{ inset: 0 }} />
+                          <div className="radar-circle radar-circle-active-2" style={{ inset: 0 }} />
+                          <div className="radar-circle radar-circle-active-3" style={{ inset: 0 }} />
+                        </>
+                      )}
+                      
+                      <div 
+                        className="relative z-10 w-16 h-16 rounded-full flex items-center justify-center border shadow-inner"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(2,132,199,0.12) 0%, rgba(56,189,248,0.04) 100%)',
+                          borderColor: isSandboxAudioPlaying ? 'rgba(56,189,248,0.5)' : 'rgba(255,255,255,0.08)',
+                          boxShadow: isSandboxAudioPlaying ? '0 0 20px rgba(56,189,248,0.2)' : 'none',
+                          transition: 'all 0.3s ease',
+                          margin: 'auto'
+                        }}
+                      >
+                        <span style={{ fontSize: '32px', animation: isSandboxAudioPlaying ? 'pulse 2s infinite' : 'none' }}>🌦️</span>
+                      </div>
+                    </div>
 
                     <p style={{ fontSize: '14px', color: 'var(--text-secondary)', fontWeight: 600, lineHeight: 1.6 }}>
                       {lt.sandboxWeatherAlert}
@@ -1125,7 +1519,7 @@ export const Landing = () => {
 
                     {/* Soundwave equalizer */}
                     {isSandboxAudioPlaying && (
-                      <div style={{ display: 'flex', alignItems: 'end', gap: '3px', height: '32px', padding: '0 10px', marginTop: '10px' }}>
+                      <div style={{ display: 'flex', alignItems: 'end', gap: '3px', height: '32px', padding: '0 10px', marginTop: '4px' }}>
                         {[...Array(6)].map((_, i) => (
                           <div
                             key={i}
@@ -1142,6 +1536,20 @@ export const Landing = () => {
                         ))}
                       </div>
                     )}
+
+                    {/* Meteorological Telemetry Fields */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%', marginTop: '8px', paddingTop: '12px', borderTop: '1px solid var(--border-subtle)', textAlign: 'left' }}>
+                      <div>
+                        <span style={{ display: 'block', fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Coordinates</span>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: '#ffffff', fontFamily: 'monospace' }}>17.057° N, 79.268° E</span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ display: 'block', fontSize: '8px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Audio Stream</span>
+                        <span style={{ fontSize: '10px', fontWeight: 700, color: isSandboxAudioPlaying ? '#38bdf8' : 'var(--text-muted)', fontFamily: 'monospace' }}>
+                          {isSandboxAudioPlaying ? "te-IN / 128kbps" : "STATION STANDBY"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1177,9 +1585,21 @@ export const Landing = () => {
                   {/* Subtle glow in top-right corner */}
                   <div style={{ position: 'absolute', top: '-20px', right: '-20px', width: '100px', height: '100px', background: `radial-gradient(circle, ${feat.bg.replace('0.08', '0.15')} 0%, transparent 70%)`, pointerEvents: 'none' }} />
 
-                  {/* Icon Badge */}
-                  <div className="icon-badge" style={{ background: feat.bg, border: `1px solid ${feat.border}` }}>
-                    <Icon style={{ width: '22px', height: '22px', color: feat.color }} />
+                  {/* Upgraded Premium Icon Badge */}
+                  <div 
+                    className="feat-icon-wrapper"
+                    style={{
+                      '--feat-color': feat.color,
+                      '--feat-bg': feat.bg,
+                      '--feat-border': feat.border,
+                      '--feat-glow-half': feat.bg.replace('0.08', '0.25')
+                    }}
+                  >
+                    <div className="feat-icon-halo" />
+                    <div className="feat-icon-pulse" />
+                    <div className="feat-icon-container">
+                      <Icon style={{ width: '20px', height: '20px', color: feat.color, filter: `drop-shadow(0 0 5px ${feat.color})` }} />
+                    </div>
                   </div>
 
                   <h3 style={{ fontFamily: 'var(--font-heading)', fontWeight: 700, fontSize: '17px', color: '#ffffff', marginBottom: '10px' }}>{feat.title}</h3>

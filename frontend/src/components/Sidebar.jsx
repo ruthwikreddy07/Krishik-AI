@@ -4,7 +4,7 @@ import { AppContext } from '../context/AppContext';
 import {
   LayoutDashboard, Map, Sprout, ScanLine,
   CloudSun, TrendingUp, FileText, MessageSquare,
-  Bell, User, LogOut, ChevronRight
+  Bell, User, LogOut, ChevronRight, ShieldAlert
 } from 'lucide-react';
 
 export const Sidebar = () => {
@@ -19,6 +19,7 @@ export const Sidebar = () => {
     { path: '/market', label: t('marketIntelligence'), icon: TrendingUp, color: 'var(--color-market)' },
     { path: '/schemes', label: t('govSchemes'), icon: FileText, color: 'var(--color-schemes)' },
     { path: '/chat', label: t('aiChatbot'), icon: MessageSquare, color: 'var(--color-chat)' },
+    { path: '/pest-risk', label: t('pestRisk'), icon: ShieldAlert, color: '#f87171' },
     { path: '/notifications', label: t('notifications'), icon: Bell, color: '#38bdf8' },
     { path: '/profile', label: t('profile'), icon: User, color: '#94a3b8' },
   ];

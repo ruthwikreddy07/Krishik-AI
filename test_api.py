@@ -2,14 +2,14 @@ import sys, io
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
 import httpx
 
-client = httpx.Client(timeout=60.0)  # 60s timeout for ML model loading
+client = httpx.Client(timeout=60.0, follow_redirects=True)  # 60s timeout for ML model loading
 
 # Test 1: Health
 r = client.get("http://127.0.0.1:8000/health")
 print("1. Health:", r.json())
 
 # Test 2: Government Schemes
-r = client.get("http://127.0.0.1:8000/api/schemes/")
+r = client.get("http://127.0.0.1:8000/api/schemes")
 print(f"2. Schemes: {len(r.json())} records loaded ✅")
 
 # Test 3: Crop Recommendation (loads Random Forest model)

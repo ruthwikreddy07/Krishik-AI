@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat, whatsapp, twilio_webhook
+from .api import auth, crops, disease, market, schemes, weather, yield_fertilizer, chat, whatsapp, twilio_webhook, pest
 from .core.database import check_db_connection, init_db
 
 logger = logging.getLogger("farmer_assistant")
@@ -78,6 +78,7 @@ app.include_router(yield_fertilizer.router)
 app.include_router(chat.router)
 app.include_router(whatsapp.router)
 app.include_router(twilio_webhook.router)
+app.include_router(pest.router)
 
 
 @app.get("/")

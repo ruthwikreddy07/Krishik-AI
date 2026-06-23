@@ -39,3 +39,8 @@ pyrightconfig.json
 
 # PDF documents
 *.pdf
+
+# Local scratch and temporary debug files
+scratch/
+debug_override.py
+test_ml_endpoints.py

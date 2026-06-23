@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
-import { TrendingUp, ArrowUpRight, Search, MapPin, AlertCircle, ShoppingBag, RefreshCw, TrendingDown, Minus } from 'lucide-react';
+import { TrendingUp, ArrowUpRight, Search, MapPin, AlertCircle, ShoppingBag, RefreshCw, TrendingDown, Minus, Route, HelpCircle } from 'lucide-react';
 import { AppContext } from '../context/AppContext';
 import { getMarketPrices, getPricePrediction } from '../services/api';
 
@@ -17,6 +17,10 @@ export const Market = () => {
   const [loading, setLoading] = useState(true);
   const [predLoading, setPredLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  // Arbitrage inputs
+  const [arbitrageYield, setArbitrageYield] = useState(25); // default 25 quintals
+  const [transportCost, setTransportCost] = useState(6); // default ₹6 per km
 
   // Fallback static mandi data when DB has no records yet
   const fallbackPrices = [
@@ -100,6 +104,40 @@ export const Market = () => {
     return <Minus className="w-4 h-4 text-amber-400" />;
   };
   const trendColor = (trend) => trend === 'rising' ? 'text-green-400' : trend === 'falling' ? 'text-red-400' : 'text-amber-400';
+
+  // Compute Arbitrage
+  const getArbitrageCalculations = () => {
+    // We fetch base price for selected crop or default to fallback
+    const matchedPrices = allPrices.filter(p => p.crop_name.toLowerCase().includes(selectedCrop.toLowerCase()));
+    const avgPrice = matchedPrices.length > 0 
+      ? matchedPrices.reduce((acc, curr) => acc + parseFloat(curr.price), 0) / matchedPrices.length
+      : 2200;
+
+    const MANDIS = [
+      { name: 'Warangal Mandi', distance: 45, mult: 1.0 },
+      { name: 'Suryapet Mandi', distance: 75, mult: 1.02 },
+      { name: 'Nalgonda Mandi', distance: 95, mult: 1.03 },
+      { name: 'Khammam Mandi', distance: 110, mult: 1.01 },
+      { name: 'Bowenpally Mandi (Hyd)', distance: 150, mult: 1.05 }
+    ];
+
+    return MANDIS.map(m => {
+      const price = Math.round(avgPrice * m.mult);
+      const gross = price * arbitrageYield;
+      const transport = m.distance * transportCost;
+      const net = gross - transport;
+      return {
+        ...m,
+        price,
+        gross,
+        transport,
+        net
+      };
+    }).sort((a, b) => b.net - a.net);
+  };
+
+  const arbitrageData = getArbitrageCalculations();
+  const recommendedMandi = arbitrageData[0];
 
   return (
     <div className="space-y-8 page-fade-in">
@@ -221,6 +259,78 @@ export const Market = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* Mandi Price Arbitrage Calculator Panel */}
+      <div className="glass-panel p-6 rounded-2xl border border-green-500/20 card-3d">
+        <div className="flex items-center gap-2 mb-4">
+          <Route className="w-5 h-5 text-green-400" />
+          <h3 className="text-lg font-bold font-heading text-slate-100">Mandi Arbitrage Optimizer</h3>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          
+          {/* Controls Form */}
+          <div className="lg:col-span-4 space-y-4 font-mono text-xs">
+            <div>
+              <label className="block text-slate-400 mb-1.5 uppercase">Estimated Yield (Quintals)</label>
+              <input
+                type="number"
+                value={arbitrageYield}
+                onChange={(e) => setArbitrageYield(Math.max(1, parseInt(e.target.value) || 0))}
+                className="w-full bg-slate-950/60 border border-green-500/20 rounded-xl px-4 py-3 text-white outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-slate-400 mb-1.5 uppercase">Transport Cost (₹ per km)</label>
+              <input
+                type="number"
+                value={transportCost}
+                onChange={(e) => setTransportCost(Math.max(1, parseInt(e.target.value) || 0))}
+                className="w-full bg-slate-950/60 border border-green-500/20 rounded-xl px-4 py-3 text-white outline-none"
+              />
+            </div>
+            
+            {recommendedMandi && (
+              <div className="bg-green-950/20 border border-green-500/30 p-4 rounded-xl space-y-1.5">
+                <span className="text-[10px] text-green-400 uppercase tracking-wider font-bold flex items-center gap-1">
+                  <TrendingUp className="w-3.5 h-3.5" /> Optimal Mandi Choice
+                </span>
+                <span className="text-slate-200 font-bold block">{recommendedMandi.name}</span>
+                <p className="text-[10px] text-slate-400 leading-normal font-sans">
+                  Selling here yields maximum net profit of <strong className="text-green-300">₹{recommendedMandi.net.toLocaleString('en-IN')}</strong> after transport cost deduction.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Mandis Comparison Table */}
+          <div className="lg:col-span-8 overflow-hidden rounded-xl border border-green-500/10 font-mono text-xs">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-green-950/20 border-b border-green-500/10 text-slate-400 uppercase text-[9px] tracking-widest">
+                  <th className="p-3">Mandi (Market)</th>
+                  <th className="p-3">Est. Distance</th>
+                  <th className="p-3">Rate/Qtl</th>
+                  <th className="p-3">Transport Cost</th>
+                  <th className="p-3 text-right">Net Profit</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-green-500/5 text-slate-300">
+                {arbitrageData.map((m, idx) => (
+                  <tr key={idx} className={`transition-colors ${idx === 0 ? 'bg-green-500/5 hover:bg-green-500/10 text-green-300' : 'hover:bg-slate-900/30'}`}>
+                    <td className="p-3 font-semibold">{m.name}</td>
+                    <td className="p-3">{m.distance} km</td>
+                    <td className="p-3">₹{m.price}</td>
+                    <td className="p-3 text-red-400">- ₹{m.transport}</td>
+                    <td className="p-3 text-right font-bold">₹{m.net.toLocaleString('en-IN')}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
       </div>
 
       {/* Mandi Price Board */}

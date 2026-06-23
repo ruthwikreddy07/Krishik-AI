@@ -53,7 +53,7 @@ class Settings(BaseSettings):
     FIREBASE_APP_ID: str = os.getenv("FIREBASE_APP_ID", "")
 
     # ML Model Paths
-    DISEASE_MODEL_PATH: str = os.getenv("DISEASE_MODEL_PATH", "ml_models/disease_detection.h5")
+    DISEASE_MODEL_PATH: str = os.getenv("DISEASE_MODEL_PATH", "ml_models/disease_model.keras")
     CROP_RECOMMEND_MODEL_PATH: str = os.getenv("CROP_RECOMMEND_MODEL_PATH", "ml_models/crop_recommendation.pkl")
     YIELD_MODEL_PATH: str = os.getenv("YIELD_MODEL_PATH", "ml_models/yield_prediction.pkl")
     PRICE_MODEL_PATH: str = os.getenv("PRICE_MODEL_PATH", "ml_models/price_prediction.h5")

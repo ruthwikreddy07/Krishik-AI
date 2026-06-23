@@ -33,16 +33,6 @@ PEST_DATABASE = {
         }
     },
     "Rice": {
-        "stem_borer": {
-            "name": "Yellow Stem Borer (వరి కాండం తొలిచే పురుగు)",
-            "risk_trigger": lambda t, h, r: 22 <= t <= 29 and h > 75,  # Cool, wet, high humidity
-            "prevention": [
-                "నాట్లు వేసేటప్పుడు పిలకల చివరలను కత్తిరించండి. Clip seedling tips before transplanting.",
-                "కాంతి ఉచ్చులను (Light traps) అమర్చండి. Install light traps to monitor adult moths."
-            ],
-            "chemical": "కార్టాప్ హైడ్రోక్లోరైడ్ 4G గుళికలు ఎకరానికి 8 కిలోలు వేయండి. Apply Cartap Hydrochloride 4G granules @ 8 kg/acre.",
-            "biological": "ట్రైకోగ్రామా జపోనికమ్ కార్డులను వాడండి. Release Trichogramma japonicum parasitoids @ 40,000/acre."
-        },
         "blast": {
             "name": "Rice Leaf Blast (వరి ఆకు అగ్గి తెగులు)",
             "risk_trigger": lambda t, h, r: t < 26 and h > 85,  # Dew, cool night temp and high humidity
@@ -52,6 +42,16 @@ PEST_DATABASE = {
             ],
             "chemical": "ట్రైసైక్లజోల్ 75% WP @ 0.6 గ్రా/లీటర్. Spray Tricyclazole 75% WP @ 0.6 g/liter.",
             "biological": "సుడోమోనాస్ ఫ్లోరైసెన్స్ @ 5 గ్రా/లీటర్ పిచికారీ చేయండి. Spray Pseudomonas fluorescens @ 5 g/liter."
+        },
+        "stem_borer": {
+            "name": "Yellow Stem Borer (వరి కాండం తొలిచే పురుగు)",
+            "risk_trigger": lambda t, h, r: 22 <= t <= 29 and h > 75,  # Cool, wet, high humidity
+            "prevention": [
+                "నాట్లు వేసేటప్పుడు పిలకల చివరలను కత్తిరించండి. Clip seedling tips before transplanting.",
+                "కాంతి ఉచ్చులను (Light traps) అమర్చండి. Install light traps to monitor adult moths."
+            ],
+            "chemical": "కార్టాప్ హైడ్రోక్లోరైడ్ 4G గుళికలు ఎకరానికి 8 కిలోలు వేయండి. Apply Cartap Hydrochloride 4G granules @ 8 kg/acre.",
+            "biological": "ట్రైకోగ్రామా జపోనికమ్ కార్డులను వాడండి. Release Trichogramma japonicum parasitoids @ 40,000/acre."
         }
     },
     "Chilli": {

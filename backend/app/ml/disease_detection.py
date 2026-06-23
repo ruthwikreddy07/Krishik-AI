@@ -112,7 +112,40 @@ def detect_disease(image_path: str) -> dict:
     else:
         disease_name = f"Unknown Disease (Index {predicted_idx})"
         
-    treatment = TREATMENT_MAP.get(disease_name, DEFAULT_TREATMENT)
+    # Smart lookup for treatment
+    def clean_str(s):
+        return s.lower().replace("_", "").replace("-", "").replace(" ", "").replace("(", "").replace(")", "")
+    
+    cleaned_name = clean_str(disease_name)
+    treatment = None
+    for k, v in TREATMENT_MAP.items():
+        if clean_str(k) == cleaned_name:
+            treatment = v
+            break
+            
+    if treatment is None:
+        if "healthy" in cleaned_name:
+            treatment = "పంట ఆరోగ్యంగా ఉంది. ప్రత్యేక చికిత్స అవసరం లేదు. Leaf is healthy. No treatment required."
+        elif "earlyblight" in cleaned_name:
+            treatment = "మాంకోజెబ్ లేదా క్లోరోథాలొనిల్ స్ప్రే చేయండి. Spray Mancozeb or Chlorothalonil."
+        elif "lateblight" in cleaned_name:
+            treatment = "మెటాలాక్సిల్ ఫంగిసైడ్ వాడండి. Apply Metalaxyl fungicide."
+        elif "leafmold" in cleaned_name:
+            treatment = "వెంటిలేషన్ పెంచండి, మాంకోజెబ్ స్ప్రే చేయండి. Improve ventilation, spray Mancozeb."
+        elif "bacterialspot" in cleaned_name:
+            treatment = "కాపర్ ఆక్సీక్లోరైడ్ లేదా స్ట్రెప్టోసైక్లిన్ వాడండి. Apply Copper Oxychloride or Streptocycline."
+        elif "yellowleafcurl" in cleaned_name:
+            treatment = "వైట్‌ఫ్లై నివారణకు ఇమిడాక్లోప్రిడ్ వాడండి. Use Imidacloprid for whitefly control."
+        elif "mosaicvirus" in cleaned_name:
+            treatment = "వైరస్ సోకిన మొక్కలను తొలగించండి, వెక్టర్స్ (పేనుబంక) నివారణకు ఇమిడాక్లోప్రిడ్ స్ప్రే చేయండి. Remove infected plants, spray Imidacloprid for vector (aphids) control."
+        elif "spidermites" in cleaned_name:
+            treatment = "అబామెక్టిన్ లేదా మైటిసైడ్ పిచికారీ చేయండి. Spray Abamectin or suitable miticide."
+        elif "septorialeafspot" in cleaned_name:
+            treatment = "మాంకోజెబ్ లేదా కాపర్ బేస్డ్ ఫంగిసైడ్ పిచికారీ చేయండి. Spray Mancozeb or copper-based fungicide."
+        elif "targetspot" in cleaned_name:
+            treatment = "క్లోరోథలోనిల్ లేదా డైఫెనోకోనజోల్ పిచికారీ చేయండి. Spray Chlorothalonil or Difenoconazole."
+        else:
+            treatment = DEFAULT_TREATMENT
 
     # Clean up the label for display
     display_name = disease_name.replace("___", " — ").replace("_", " ")

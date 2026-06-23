@@ -10,8 +10,12 @@ venv/
 # Uploaded images
 uploads/
 
-# Trained ML models (large binaries)
-ml_models/
+# Trained ML models (track model binaries but keep directory clean)
+ml_models/*
+!ml_models/*.keras
+!ml_models/*.h5
+!ml_models/*.pkl
+!ml_models/*.json
 
 # Datasets & Temp Files (large files — download from Kaggle)
 ml_training/datasets/*.csv

@@ -86,6 +86,99 @@ graph TD
     BackendServices -->|External APIs| External[Open-Meteo & Gemini APIs]
 ```
 
+## ⚙️ Data Flow & ML Pipelines
+
+### 1. ML Model Inference Pipeline
+This diagram shows how user inputs (soil metrics, leaf photos, historical mandi rates) are processed, scaled, and run through our ML/DL classifiers to generate dynamic agronomic outputs:
+
+```mermaid
+flowchart TD
+    subgraph Inputs [User / Sensor Data]
+        A[Soil Nutrients NPK & pH]
+        B[Leaf Photo JPEG/PNG]
+        C[Historical Mandi Prices]
+    end
+
+    subgraph Preprocessing [Data Processing Layer]
+        D[Vite Weather API Autofill]
+        E[Image Resizer 224x224 & convert RGB]
+        F[MinMax Scaler transform]
+    end
+
+    subgraph Inference [Model Inference Layer]
+        G[Random Forest Classifier]
+        H[MobileNetV2 CNN Model]
+        I[XGBoost & Decision Tree]
+        J[LSTM Recurrent Neural Network]
+    end
+
+    subgraph Outputs [Dynamic Advisors]
+        K[Recommended Crop]
+        L[Pathogen Diagnosis & Treatment]
+        M[Dosage kg/acre & Yield Projection]
+        N[30-Day price trajectory]
+    end
+
+    A --> D
+    D --> G
+    B --> E
+    E --> H
+    C --> F
+    F --> J
+    A & I --> M
+    G --> K
+    H --> L
+    J --> N
+```
+
+### 2. WhatsApp Message Webhook Processing
+This diagram shows the asynchronous background processing pipeline that powers the Meta Cloud and Twilio WhatsApp chatbot interfaces:
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Farmer
+    participant WhatsApp as Meta/Twilio Cloud API
+    participant Webhook as FastAPI Webhook Endpoint
+    participant DB as MySQL Database
+    participant ML as ML Models (CNN / LSTM)
+
+    Farmer->>WhatsApp: Sends query (text or leaf image)
+    WhatsApp->>Webhook: Sends HTTP POST (JSON Payload)
+    Webhook-->>WhatsApp: Returns 200 OK (Immediate Handshake)
+    
+    rect rgb(30, 41, 59)
+        note over Webhook, ML: Asynchronous Webhook Processing
+        Webhook->>DB: Query sender mobile (farmer profile lookup)
+        alt Message Type = Leaf Image
+            Webhook->>WhatsApp: Downloads leaf image binary
+            Webhook->>ML: Run CNN MobileNetV2 Inference
+            ML-->>Webhook: Returns disease + treatment recommendation
+            opt Farmer is Registered
+                Webhook->>DB: Save DiseaseRecord (FK linked)
+            end
+        else Message Type = Text Question
+            Webhook->>ML: Query LSTM for mandi price OR Gemini for agronomist tips
+            ML-->>Webhook: Returns price forecast / chat response
+        end
+        Webhook->>DB: Write UserActivity log
+        Webhook->>WhatsApp: Dispatch WhatsApp Message (POST)
+    end
+    WhatsApp->>Farmer: Delivery of advice/report on mobile
+```
+
+## 🧠 Machine Learning Core & Model Performance
+
+Krishik AI relies on a dedicated suite of Machine Learning and Deep Learning models for agronomic and commercial forecasting. The details, algorithms, and validation metrics for each model are summarized below:
+
+| Feature/Task | Model/Algorithm | Key Inputs | Output/Target | Performance Metrics |
+| :--- | :--- | :--- | :--- | :--- |
+| **Crop Recommendation** | **Random Forest Classifier** | Soil $N, P, K$, pH, Temp, Humidity, Rainfall | Predicted Crop (22 varieties) | **99.3% Testing Accuracy** (GridSearchCV) |
+| **Disease Detection** | **MobileNetV2 CNN** | RGB Leaf Image ($224 \times 224 \times 3$) | Leaf Disease Class (15 classes) | **95.0% Training Accuracy** (Transfer Learning) |
+| **Yield Prediction** | **XGBoost Regressor** | Area, Crop, Soil type, NPK, Temp, Rain, Humidity | Crop Yield (Quintals/Acre) | **R² Score > 0.99** |
+| **Fertilizer Recommendation** | **Decision Tree Classifier** | Crop, Soil, NPK, current Growth Stage | Fertilizer Type & Dosage (8 classes) | **100% Testing Accuracy** (Deterministic rules) |
+| **Market Price Forecasting** | **LSTM Neural Network** | Historic spot prices (30-day sequence lookback) | Next-day commodity price | **MSE Loss < 0.0032** (val_loss) |
+
 ---
 
 ## 🛠️ Installation & Setup

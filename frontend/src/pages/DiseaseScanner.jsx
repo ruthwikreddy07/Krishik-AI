@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useContext, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useDropzone } from 'react-dropzone';
 import { ScanLine, Upload, Leaf, ShieldCheck, AlertCircle, Wrench, RefreshCw, Eye } from 'lucide-react';
 import { toast } from 'react-toastify';
@@ -12,6 +13,8 @@ export const DiseaseScanner = () => {
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
+  const [selectedHistory, setSelectedHistory] = useState(null);
+  const [historyImageError, setHistoryImageError] = useState(false);
 
   // Load history on mount
   useEffect(() => {
@@ -23,6 +26,21 @@ export const DiseaseScanner = () => {
         ]));
     }
   }, [user?.id]);
+
+  useEffect(() => {
+    setHistoryImageError(false);
+  }, [selectedHistory]);
+
+  useEffect(() => {
+    if (selectedHistory) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedHistory]);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
@@ -187,10 +205,22 @@ export const DiseaseScanner = () => {
                 const conf = h.confidence != null ? `${(h.confidence * 100).toFixed(0)}%` : h.severity;
                 const isHealthy = disease.toLowerCase().includes('healthy');
                 return (
-                  <div key={i} className="flex justify-between items-center bg-slate-950/30 border border-green-500/5 p-3 rounded-xl">
+                  <div 
+                    key={i} 
+                    onClick={() => setSelectedHistory(h)}
+                    className="flex justify-between items-center bg-slate-950/30 border border-green-500/5 hover:border-green-500/30 p-3 rounded-xl cursor-pointer transition-all"
+                  >
                     <div>
                       <span className="text-slate-500 block text-[10px]">{date}</span>
-                      <span className="text-slate-300 font-semibold">{disease}</span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-slate-300 font-semibold">{disease}</span>
+                        {h.verified_by_expert && (
+                          <span className="px-1.5 py-0.5 rounded bg-green-500/10 border border-green-500/30 text-[9px] font-bold text-green-400 font-sans flex items-center gap-0.5">
+                            <ShieldCheck className="w-2.5 h-2.5" />
+                            <span>VERIFIED</span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <div className="flex gap-2">
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
@@ -280,6 +310,119 @@ export const DiseaseScanner = () => {
         </div>
 
       </div>
+
+      {/* MODAL: REPORT DETAILS WITH EXPERT VERIFICATION */}
+      {selectedHistory && createPortal(
+        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4 font-body">
+          <div className="glass-panel border border-green-500/30 max-w-2xl w-full rounded-3xl p-5 relative overflow-hidden flex flex-col max-h-[90vh]" style={{ fontFamily: 'var(--font-body)' }}>
+            <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl pointer-events-none"></div>
+
+            {/* Header */}
+            <div className="flex justify-between items-start border-b border-green-500/10 pb-3 mb-3">
+              <div>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Diagnostic Report Details</span>
+                <h3 className="text-base font-bold font-heading text-slate-200 mt-0.5">
+                  Report #{selectedHistory.id || 'N/A'}
+                </h3>
+              </div>
+              <button 
+                onClick={() => setSelectedHistory(null)}
+                className="text-slate-400 hover:text-slate-200 font-mono text-sm"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-4 overflow-y-auto pr-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                {/* Image */}
+                <div className="relative rounded-xl overflow-hidden border border-green-500/20 h-40 flex items-center justify-center bg-slate-950/40">
+                  {selectedHistory.image_url && !historyImageError ? (
+                    <img 
+                      src={selectedHistory.image_url.startsWith('http') ? selectedHistory.image_url : `https://krishik-ai-backend.onrender.com${selectedHistory.image_url}`} 
+                      alt="Crop Leaf pathology" 
+                      className="h-full object-contain w-full"
+                      onError={(e) => {
+                        if (e.target.src.includes('krishik-ai-backend.onrender.com')) {
+                          e.target.src = `/api${selectedHistory.image_url}`;
+                        } else {
+                          setHistoryImageError(true);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-500 font-mono text-[10px] gap-2 p-4 text-center">
+                      <Leaf className="w-8 h-8 text-slate-600" />
+                      <span>Original Leaf Image Unavailable<br/>(Ephemeral Server Storage)</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Parameters */}
+                <div className="space-y-3 flex flex-col justify-between">
+                  <div className="bg-slate-950/40 p-3 rounded-xl border border-green-500/5 font-mono text-[11px] space-y-1">
+                    <div><span className="text-slate-500">DIAGNOSIS:</span> <span className={`${selectedHistory.detected_disease?.toLowerCase().includes('healthy') ? 'text-green-400' : 'text-red-400'} font-bold`}>{selectedHistory.detected_disease || selectedHistory.disease || 'Unknown'}</span></div>
+                    <div><span className="text-slate-500">CONFIDENCE:</span> <span className="text-green-400 font-semibold">{selectedHistory.confidence != null ? `${(selectedHistory.confidence * 100).toFixed(0)}%` : selectedHistory.severity}</span></div>
+                    <div><span className="text-slate-500">DATE RECORDED:</span> <span className="text-slate-200">{selectedHistory.created_at ? new Date(selectedHistory.created_at).toLocaleString('en-IN') : selectedHistory.date}</span></div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <Wrench className="w-3.5 h-3.5 text-green-400" />
+                      <span>System Treatment Recommendations</span>
+                    </span>
+                    <p className="text-[11px] text-slate-400 leading-normal">
+                      {selectedHistory.treatment_recommendation || 'Follow standard treatment protocols.'}
+                    </p>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Expert Advice Section */}
+              <div className="border-t border-green-500/15 pt-3 mt-1">
+                {selectedHistory.verified_by_expert ? (
+                  <div className="border border-green-500/20 bg-green-950/20 p-3 rounded-xl space-y-1.5">
+                    <span className="text-[10px] font-mono font-bold text-green-400 uppercase tracking-widest flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-green-400" />
+                      <span>VERIFIED EXPERT AGRONOMIST ADVICE</span>
+                    </span>
+                    <p className="text-xs text-slate-200 font-sans italic leading-relaxed font-semibold">
+                      "{selectedHistory.expert_comments}"
+                    </p>
+                  </div>
+                ) : (
+                  <div className="border border-amber-500/10 bg-amber-950/10 p-3 rounded-xl space-y-1 flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-amber-500 uppercase tracking-widest">
+                        PENDING EXPERT REVIEW
+                      </span>
+                      <p className="text-[11px] text-slate-400 leading-normal mt-0.5">
+                        Our panel of agriculture experts will review this report shortly and add specialized field-action recommendations if needed.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Close Button */}
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setSelectedHistory(null)}
+                  className="py-2 px-5 bg-green-650 hover:bg-green-500 text-slate-900 font-bold rounded-xl transition-all border border-green-400 shadow-[0_4px_15px_rgba(34,197,94,0.2)] text-xs"
+                >
+                  Close Report
+                </button>
+              </div>
+
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
 
     </div>
   );

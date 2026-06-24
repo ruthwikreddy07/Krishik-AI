@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 import { 
   Users, ScanLine, CheckCircle2, AlertCircle, Wrench, ShieldCheck, 
   MapPin, LogOut, Eye, MessageSquare, ClipboardCheck, ArrowRight, Table,
-  Plus, Edit, Trash2, FileText
+  Plus, Edit, Trash2, FileText, Leaf
 } from 'lucide-react';
 
 export const AdminDashboard = () => {
@@ -32,6 +32,7 @@ export const AdminDashboard = () => {
   const [selectedScan, setSelectedScan] = useState(null);
   const [comments, setComments] = useState('');
   const [verifying, setVerifying] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   // Scheme modal state
   const [selectedScheme, setSelectedScheme] = useState(null); // 'new' | scheme object | null
@@ -80,6 +81,7 @@ export const AdminDashboard = () => {
     } else {
       document.body.style.overflow = 'unset';
     }
+    setImageError(false);
     return () => {
       document.body.style.overflow = 'unset';
     };
@@ -510,14 +512,25 @@ export const AdminDashboard = () => {
                 
                 {/* Left side: Uploaded leaf image */}
                 <div className="relative rounded-xl overflow-hidden border border-green-500/20 h-40 flex items-center justify-center bg-slate-950/40">
-                  <img 
-                    src={selectedScan.image_url.startsWith('http') ? selectedScan.image_url : `https://krishik-ai-backend.onrender.com${selectedScan.image_url}`} 
-                    alt="Uploaded crop leaf pathology" 
-                    className="h-full object-contain w-full"
-                    onError={(e) => {
-                      e.target.src = `/api${selectedScan.image_url}`;
-                    }}
-                  />
+                  {!imageError ? (
+                    <img 
+                      src={selectedScan.image_url.startsWith('http') ? selectedScan.image_url : `https://krishik-ai-backend.onrender.com${selectedScan.image_url}`} 
+                      alt="Uploaded crop leaf pathology" 
+                      className="h-full object-contain w-full"
+                      onError={(e) => {
+                        if (e.target.src.includes('krishik-ai-backend.onrender.com')) {
+                          e.target.src = `/api${selectedScan.image_url}`;
+                        } else {
+                          setImageError(true);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-500 font-mono text-[10px] gap-2 p-4 text-center">
+                      <Leaf className="w-8 h-8 text-slate-600 animate-pulse" />
+                      <span>Original Leaf Image Unavailable<br/>(Ephemeral Server Storage)</span>
+                    </div>
+                  )}
                 </div>
 
                 {/* Right side: Diagnosis parameters */}

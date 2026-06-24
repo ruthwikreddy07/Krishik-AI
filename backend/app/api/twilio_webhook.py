@@ -28,7 +28,10 @@ async def process_twilio_message(sender_phone: str, message_body: str, num_media
         phone_last_10 = phone_digits[-10:] if len(phone_digits) >= 10 else phone_digits
 
         # Look up farmer profile
-        farmer = db.query(Farmer).filter(Farmer.mobile_number.like(f"%{phone_last_10}")).first()
+        farmer = db.query(Farmer).filter(
+            Farmer.mobile_number.like(f"%{phone_last_10}"),
+            Farmer.is_verified == True
+        ).first()
         farmer_id = farmer.id if farmer else None
 
         # 1. HANDLE IMAGE MESSAGE (Disease Detection)

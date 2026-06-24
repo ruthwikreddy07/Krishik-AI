@@ -203,7 +203,10 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
     phone_last_10 = phone_digits[-10:] if len(phone_digits) >= 10 else phone_digits
 
     # Look up farmer profile
-    farmer = db.query(Farmer).filter(Farmer.mobile_number.like(f"%{phone_last_10}")).first()
+    farmer = db.query(Farmer).filter(
+        Farmer.mobile_number.like(f"%{phone_last_10}"),
+        Farmer.is_verified == True
+    ).first()
 
     # Determine message type
     msg_type = msg.get("type", "text")

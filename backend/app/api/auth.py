@@ -235,9 +235,37 @@ def verify_expert_or_admin(current_staff: Staff = Depends(get_current_staff)) ->
 @router.post("/register", response_model=FarmerProfile, status_code=status.HTTP_201_CREATED)
 def register_farmer(req: RegisterRequest, db: Session = Depends(get_db)):
     """Register a new farmer profile (Step 1 — before OTP verification)."""
+    # Clean up old unverified registrations for ANY number that are older than 1 hour
+    try:
+        one_hour_ago = datetime.utcnow() - timedelta(hours=1)
+        db.query(Farmer).filter(
+            Farmer.is_verified == False,
+            Farmer.created_at < one_hour_ago
+        ).delete()
+        db.commit()
+    except Exception as e:
+        logger.exception("Error cleaning up old unverified registrations:")
+        db.rollback()
+
     existing = db.query(Farmer).filter(Farmer.mobile_number == req.mobile_number).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Mobile number already registered")
+        if existing.is_verified:
+            raise HTTPException(status_code=400, detail="Mobile number already registered")
+        else:
+            # Overwrite/update the existing unverified farmer details instead of failing
+            existing.name = req.name
+            existing.village = req.village
+            existing.mandal = req.mandal
+            existing.district = req.district
+            existing.latitude = req.latitude
+            existing.longitude = req.longitude
+            existing.land_size_acres = req.land_size_acres
+            existing.soil_type = req.soil_type
+            existing.water_source = req.water_source
+            existing.created_at = datetime.utcnow()  # Reset created_at so it doesn't get cleaned up immediately
+            db.commit()
+            db.refresh(existing)
+            return existing
 
     farmer = Farmer(
         name=req.name,
@@ -450,6 +478,6 @@ def get_all_farmers(
     db: Session = Depends(get_db)
 ):
     """Retrieve list of all registered farmers (Admin only)."""
-    return db.query(Farmer).all()
+    return db.query(Farmer).filter(Farmer.is_verified == True).all()
 
 

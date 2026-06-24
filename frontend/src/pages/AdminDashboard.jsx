@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { 
@@ -484,7 +485,7 @@ export const AdminDashboard = () => {
       )}
 
       {/* MODAL: SCAN EXPERT REVIEW & VERIFICATION */}
-      {selectedScan && (
+      {selectedScan && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="glass-panel border border-green-500/30 max-w-3xl w-full rounded-3xl p-5 relative overflow-hidden flex flex-col max-h-[90vh]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -504,7 +505,7 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Modal Content Area */}
-            <div className="space-y-4 flex-grow overflow-y-auto pr-1">
+            <div className="space-y-4 overflow-y-auto pr-1">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                 {/* Left side: Uploaded leaf image */}
@@ -591,11 +592,12 @@ export const AdminDashboard = () => {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* MODAL: ADD/EDIT SCHEME */}
-      {selectedScheme && (
+      {selectedScheme && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
           <div className="glass-panel border border-green-500/30 max-w-2xl w-full rounded-3xl p-6 relative overflow-hidden flex flex-col max-h-[90vh]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl pointer-events-none"></div>
@@ -617,7 +619,7 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Modal Content Form */}
-            <form onSubmit={handleSchemeSubmit} className="space-y-4 overflow-y-auto flex-grow pr-2">
+            <form onSubmit={handleSchemeSubmit} className="space-y-4 overflow-y-auto pr-2">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-mono text-slate-400 mb-1.5 uppercase tracking-widest">Scheme Title</label>
@@ -789,7 +791,8 @@ export const AdminDashboard = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

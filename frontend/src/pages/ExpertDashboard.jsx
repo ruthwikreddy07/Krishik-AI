@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { adminGetAllDiseaseRecords, adminVerifyDiseaseRecord } from '../services/api';
@@ -34,6 +35,17 @@ export const ExpertDashboard = () => {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (selectedScan) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [selectedScan]);
 
   const handleVerify = async (e) => {
     e.preventDefault();
@@ -197,16 +209,16 @@ export const ExpertDashboard = () => {
       </div>
 
       {/* MODAL: EXPERT PATHOLOGY REVIEW & COMMENTS */}
-      {selectedScan && (
+      {selectedScan && createPortal(
         <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div className="glass-panel border border-green-500/30 max-w-3xl w-full rounded-3xl p-6 relative overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="glass-panel border border-green-500/30 max-w-3xl w-full rounded-3xl p-5 relative overflow-hidden flex flex-col max-h-[90vh]">
             <div className="absolute top-0 right-0 w-24 h-24 bg-green-500/5 rounded-full blur-2xl pointer-events-none"></div>
 
             {/* Modal Header */}
-            <div className="flex justify-between items-start border-b border-green-500/10 pb-4 mb-4">
+            <div className="flex justify-between items-start border-b border-green-500/10 pb-3 mb-3">
               <div>
                 <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest">Expert Verification Workflow</span>
-                <h3 className="text-lg font-bold font-heading text-slate-200 mt-1">Review Report #{selectedScan.id}</h3>
+                <h3 className="text-base font-bold font-heading text-slate-200 mt-0.5">Review Report #{selectedScan.id}</h3>
               </div>
               <button 
                 onClick={() => { setSelectedScan(null); setComments(''); }}
@@ -217,15 +229,15 @@ export const ExpertDashboard = () => {
             </div>
 
             {/* Modal Content Scroll Area */}
-            <div className="space-y-6 overflow-y-auto flex-grow pr-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4 overflow-y-auto pr-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 
                 {/* Left side: Uploaded leaf image */}
-                <div className="relative rounded-xl overflow-hidden border border-green-500/20 max-h-[300px] flex items-center justify-center bg-slate-950/40">
+                <div className="relative rounded-xl overflow-hidden border border-green-500/20 h-40 flex items-center justify-center bg-slate-950/40">
                   <img 
                     src={selectedScan.image_url.startsWith('http') ? selectedScan.image_url : `https://krishik-ai-backend.onrender.com${selectedScan.image_url}`} 
                     alt="Uploaded crop leaf pathology" 
-                    className="max-h-[300px] object-contain w-full"
+                    className="h-full object-contain w-full"
                     onError={(e) => {
                       e.target.src = `/api${selectedScan.image_url}`;
                     }}
@@ -233,10 +245,10 @@ export const ExpertDashboard = () => {
                 </div>
 
                 {/* Right side: Parameters */}
-                <div className="space-y-4">
+                <div className="space-y-3 flex flex-col justify-between">
                   
                   {/* Info Panel */}
-                  <div className="bg-slate-950/40 p-4 rounded-xl border border-green-500/5 font-mono text-xs space-y-2">
+                  <div className="bg-slate-950/40 p-3 rounded-xl border border-green-500/5 font-mono text-[11px] space-y-1">
                     <div><span className="text-slate-500">DIAGNOSTIC LAB:</span> <span className="text-slate-200">{selectedScan.detected_disease}</span></div>
                     <div><span className="text-slate-500">CONFIDENCE:</span> <span className="text-green-400 font-semibold">{selectedScan.confidence}%</span></div>
                     <div><span className="text-slate-500">FARMER:</span> <span className="text-slate-200">Farmer ID #{selectedScan.farmer_id}</span></div>
@@ -244,21 +256,21 @@ export const ExpertDashboard = () => {
                   </div>
 
                   {/* Recommendations */}
-                  <div className="space-y-1.5">
-                    <span className="text-xs font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-mono text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
                       <Wrench className="w-3.5 h-3.5 text-green-400" />
                       <span>Immediate Chemical/Biological Treatment</span>
                     </span>
-                    <p className="text-xs text-slate-400 leading-normal">{selectedScan.treatment_recommendation || 'Follow standard treatment protocols.'}</p>
+                    <p className="text-[11px] text-slate-400 leading-normal">{selectedScan.treatment_recommendation || 'Follow standard treatment protocols.'}</p>
                   </div>
 
                   {/* Verified Details */}
                   {selectedScan.verified_by_expert && (
-                    <div className="border border-green-500/20 bg-green-950/20 p-4 rounded-xl flex gap-3 items-start">
-                      <CheckCircle2 className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="border border-green-500/20 bg-green-950/20 p-2.5 rounded-xl flex gap-2 items-start">
+                      <CheckCircle2 className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
                       <div>
-                        <span className="text-xs font-bold text-green-400 uppercase tracking-wider block">Already Verified</span>
-                        <p className="text-xs text-slate-300 mt-1 italic font-sans">"{selectedScan.expert_comments}"</p>
+                        <span className="text-[10px] font-bold text-green-400 uppercase tracking-wider block">Already Verified</span>
+                        <p className="text-[11px] text-slate-300 mt-0.5 italic font-sans">"{selectedScan.expert_comments}"</p>
                       </div>
                     </div>
                   )}
@@ -268,17 +280,17 @@ export const ExpertDashboard = () => {
 
               {/* Input Form */}
               {!selectedScan.verified_by_expert && (
-                <form onSubmit={handleVerify} className="space-y-4 border-t border-green-500/10 pt-4">
+                <form onSubmit={handleVerify} className="space-y-3 border-t border-green-500/10 pt-3">
                   <div>
-                    <label className="block text-xs font-mono text-slate-400 mb-2 uppercase tracking-widest">
+                    <label className="block text-[10px] font-mono text-slate-400 mb-1.5 uppercase tracking-widest">
                       Expert Advice & Action Verification Comments
                     </label>
                     <textarea
-                      rows="3"
+                      rows="2"
                       value={comments}
                       onChange={(e) => setComments(e.target.value)}
-                      placeholder="e.g. Confirmed early blight pattern. Apply Chlorothalonil or Mancozeb fungicide spray immediately. Maintain optimal spacing and moisture levels."
-                      className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-4 py-3 text-xs font-sans text-white outline-none transition-all focus:shadow-[0_0_15px_rgba(34,197,94,0.15)]"
+                      placeholder="e.g. Confirmed early blight pattern. Apply Chlorothalonil or Mancozeb fungicide spray immediately."
+                      className="w-full bg-slate-950/60 border border-green-500/20 focus:border-green-500/60 rounded-xl px-3 py-2 text-xs font-sans text-white outline-none transition-all focus:shadow-[0_0_15px_rgba(34,197,94,0.15)]"
                     ></textarea>
                   </div>
                   
@@ -286,14 +298,14 @@ export const ExpertDashboard = () => {
                     <button
                       type="button"
                       onClick={() => { setSelectedScan(null); setComments(''); }}
-                      className="py-2.5 px-4 bg-slate-950 border border-green-500/10 hover:bg-slate-900 text-slate-400 text-xs font-bold rounded-xl transition-all"
+                      className="py-2 px-4 bg-slate-950 border border-green-500/10 hover:bg-slate-900 text-slate-400 text-xs font-bold rounded-xl transition-all"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={verifying}
-                      className="py-2.5 px-6 bg-green-600 hover:bg-green-500 text-slate-900 font-bold rounded-xl transition-all duration-305 flex items-center justify-center gap-2 border border-green-400 shadow-[0_4px_15px_rgba(34,197,94,0.2)]"
+                      className="py-2 px-5 bg-green-600 hover:bg-green-500 text-slate-900 font-bold rounded-xl transition-all duration-305 flex items-center justify-center gap-2 border border-green-400 shadow-[0_4px_15px_rgba(34,197,94,0.2)]"
                     >
                       <ClipboardCheck className="w-4 h-4" />
                       <span>{verifying ? 'Submitting...' : 'Verify Diagnosis'}</span>
@@ -304,7 +316,8 @@ export const ExpertDashboard = () => {
 
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
     </div>

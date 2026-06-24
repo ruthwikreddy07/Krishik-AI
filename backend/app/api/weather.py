@@ -203,11 +203,17 @@ async def get_weather_by_location(
             "date": date_str,
             "temp_min": daily["temperature_2m_min"][i],
             "temp_max": daily["temperature_2m_max"][i],
+            "rain_sum": daily.get("rain_sum", [0])[i],
             "rain_sum_mm": daily.get("rain_sum", [0])[i],
+            "rain_probability": daily.get("precipitation_probability_max", [0])[i],
             "rain_probability_pct": daily.get("precipitation_probability_max", [0])[i],
+            "wind_speed_max": daily.get("wind_speed_10m_max", [0])[i],
             "wind_speed_max_kmh": daily.get("wind_speed_10m_max", [0])[i],
+            "avg_humidity": round(avg["humidity"], 1),
             "avg_humidity_pct": round(avg["humidity"], 1),
+            "avg_soil_temperature": round(avg["soil_temp"], 1),
             "avg_soil_temp_c": round(avg["soil_temp"], 1),
+            "avg_soil_moisture": round(avg["soil_moisture"], 4),
             "avg_soil_moisture_m3m3": round(avg["soil_moisture"], 4),
         })
 

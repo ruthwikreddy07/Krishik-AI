@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { ShieldAlert, AlertTriangle, ShieldCheck, Thermometer, Droplet, CloudRain, RefreshCw, AlertCircle, CheckCircle, Wrench, Shield } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AppContext } from '../context/AppContext';
-import axios from 'axios';
+import api from '../services/api';
 
 export const PestRisk = () => {
   const { user } = useContext(AppContext);
@@ -14,11 +14,8 @@ export const PestRisk = () => {
     setLoading(true);
     setError(null);
     try {
-      if (user?.id && user.id !== 0) {
-        const token = localStorage.getItem('farmer_token');
-        const res = await axios.get(`/api/pest/predict/${user.id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      if (user?.id && user.id !== 99999) {
+        const res = await api.get(`/pest/predict/${user.id}`);
         setPredictions(res.data);
       } else {
         // Demo fallback simulation
@@ -58,7 +55,7 @@ export const PestRisk = () => {
     } catch (err) {
       setError(err.response?.data?.detail || 'Failed to query pest prediction API.');
     } finally {
-      if (user?.id && user.id !== 0) setLoading(false);
+      if (user?.id && user.id !== 99999) setLoading(false);
     }
   };
 

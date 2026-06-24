@@ -64,16 +64,17 @@ async def process_twilio_message(sender_phone: str, message_body: str, num_media
                     treatment = result["treatment"]
                     confidence = result["confidence"]
 
-                    # Save record
-                    db_record = DiseaseRecord(
-                        farmer_id=farmer_id if farmer_id else 1,
-                        image_url=f"/uploads/disease_images/{os.path.basename(image_saved_path)}",
-                        detected_disease=disease_name,
-                        confidence=confidence,
-                        treatment_recommendation=treatment
-                    )
-                    db.add(db_record)
-                    db.commit()
+                    # Save record if farmer is registered
+                    if farmer_id:
+                        db_record = DiseaseRecord(
+                            farmer_id=farmer_id,
+                            image_url=f"/uploads/disease_images/{os.path.basename(image_saved_path)}",
+                            detected_disease=disease_name,
+                            confidence=confidence,
+                            treatment_recommendation=treatment
+                        )
+                        db.add(db_record)
+                        db.commit()
 
                     reply_text = (
                         f"🌿 *Krishik AI Disease Diagnosis Result* 🌿\n\n"
@@ -96,15 +97,17 @@ async def process_twilio_message(sender_phone: str, message_body: str, num_media
                 import random
                 selected = random.choice(mock_diseases)
 
-                db_record = DiseaseRecord(
-                    farmer_id=farmer_id if farmer_id else 1,
-                    image_url="/uploads/disease_images/mock_whatsapp.jpg",
-                    detected_disease=selected["name"],
-                    confidence=89.5,
-                    treatment_recommendation=selected["treatment"]
-                )
-                db.add(db_record)
-                db.commit()
+                # Save record if farmer is registered
+                if farmer_id:
+                    db_record = DiseaseRecord(
+                        farmer_id=farmer_id,
+                        image_url="/uploads/disease_images/mock_whatsapp.jpg",
+                        detected_disease=selected["name"],
+                        confidence=89.5,
+                        treatment_recommendation=selected["treatment"]
+                    )
+                    db.add(db_record)
+                    db.commit()
 
                 reply_text = (
                     f"🌿 *Krishik AI - Disease Diagnosis (Simulation Mode)* 🌿\n\n"

@@ -9,7 +9,6 @@ import { detectDisease, getDiseaseHistory } from '../services/api';
 export const DiseaseScanner = () => {
   const { user } = useContext(AppContext);
   const [filePreview, setFilePreview] = useState(null);
-  const [uploadedFile, setUploadedFile] = useState(null);
   const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
   const [history, setHistory] = useState([]);
@@ -35,17 +34,16 @@ export const DiseaseScanner = () => {
     if (selectedHistory) {
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      document.body.style.overflow = '';
     };
   }, [selectedHistory]);
 
   const onDrop = useCallback((acceptedFiles) => {
     const file = acceptedFiles[0];
     if (file) {
-      setUploadedFile(file);
       setFilePreview(URL.createObjectURL(file));
       setScanning(true);
       setResult(null);

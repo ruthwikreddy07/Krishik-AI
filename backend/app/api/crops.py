@@ -141,3 +141,24 @@ def update_crop_stage(
     db.commit()
     db.refresh(crop)
     return crop
+
+
+@router.delete("/{crop_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_crop(
+    crop_id: int,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
+    """Delete a crop entry (Authenticated). Only the crop owner can delete it."""
+    crop = db.query(Crop).filter(Crop.id == crop_id).first()
+    if not crop:
+        raise HTTPException(status_code=404, detail="Crop not found")
+
+    if crop.farmer_id != current_farmer.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you can only delete your own crops"
+        )
+
+    db.delete(crop)
+    db.commit()

@@ -51,6 +51,7 @@ export const AdminDashboard = () => {
     allowed_caste: 'All'
   });
   const [submittingScheme, setSubmittingScheme] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // scheme id pending deletion
 
   const loadData = async () => {
     setLoading(true);
@@ -185,16 +186,21 @@ export const AdminDashboard = () => {
   };
 
   const handleDeleteScheme = async (schemeId) => {
-    if (!window.confirm('Are you sure you want to delete this government scheme?')) return;
+    setConfirmDeleteId(schemeId);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
     try {
-      await adminDeleteScheme(schemeId);
+      await adminDeleteScheme(confirmDeleteId);
       toast.success('Government scheme deleted successfully.');
-      // Reload schemes
       const schemesData = await getSchemes();
       setSchemes(schemesData);
     } catch (err) {
       console.error(err);
       toast.error('Failed to delete government scheme.');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -223,8 +229,36 @@ export const AdminDashboard = () => {
 
   return (
     <div className="space-y-6 page-fade-in" style={{ fontFamily: 'var(--font-body)' }}>
-      
+
+      {/* ── Custom Delete Confirmation Modal ───────────────────── */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass-panel p-8 rounded-2xl border border-red-500/30 max-w-sm w-full mx-4 shadow-[0_0_40px_rgba(239,68,68,0.15)]">
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-100 text-center mb-2">Delete Scheme?</h3>
+            <p className="text-sm text-slate-400 text-center mb-6">This government scheme will be permanently removed from the system. This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 px-4 border border-slate-600/40 text-slate-400 hover:text-slate-200 rounded-xl text-sm font-semibold transition-all hover:bg-slate-800/40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2.5 px-4 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 border border-red-500/30 rounded-xl text-sm font-semibold transition-all"
+              >
+                Delete Scheme
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Admin Header */}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-green-950/40 to-slate-950/40 p-6 rounded-2xl border border-green-500/20 glass-panel">
         <div>
           <h2 className="text-2xl font-bold font-heading text-slate-100 glow-text-green">Admin Portal — {user?.name || 'Administrator'}</h2>

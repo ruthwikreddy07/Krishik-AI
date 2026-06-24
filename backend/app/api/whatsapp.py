@@ -287,16 +287,17 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
                 treatment = result["treatment"]
                 confidence = result["confidence"]
                 
-                # Save disease record to DB
-                db_record = DiseaseRecord(
-                    farmer_id=farmer.id if farmer else 1, # Default fallback if farmer not registered
-                    image_url=f"/uploads/disease_images/{os.path.basename(image_saved_path)}",
-                    detected_disease=disease_name,
-                    confidence=confidence,
-                    treatment_recommendation=treatment
-                )
-                db.add(db_record)
-                db.commit()
+                # Save disease record to DB if farmer is registered
+                if farmer:
+                    db_record = DiseaseRecord(
+                        farmer_id=farmer.id,
+                        image_url=f"/uploads/disease_images/{os.path.basename(image_saved_path)}",
+                        detected_disease=disease_name,
+                        confidence=confidence,
+                        treatment_recommendation=treatment
+                    )
+                    db.add(db_record)
+                    db.commit()
                 
                 # Format reply text
                 reply_text = (
@@ -320,16 +321,17 @@ async def handle_whatsapp_webhook(request: Request, db: Session = Depends(get_db
             import random
             selected = random.choice(mock_diseases)
             
-            # Save mock record to DB
-            db_record = DiseaseRecord(
-                farmer_id=farmer.id if farmer else 1,
-                image_url="/uploads/disease_images/mock_whatsapp.jpg",
-                detected_disease=selected["name"],
-                confidence=89.5,
-                treatment_recommendation=selected["treatment"]
-            )
-            db.add(db_record)
-            db.commit()
+            # Save mock record to DB if farmer is registered
+            if farmer:
+                db_record = DiseaseRecord(
+                    farmer_id=farmer.id,
+                    image_url="/uploads/disease_images/mock_whatsapp.jpg",
+                    detected_disease=selected["name"],
+                    confidence=89.5,
+                    treatment_recommendation=selected["treatment"]
+                )
+                db.add(db_record)
+                db.commit()
 
             reply_text = (
                 f"🌿 *Krishik AI - Disease Diagnosis (Simulation Mode)* 🌿\n\n"

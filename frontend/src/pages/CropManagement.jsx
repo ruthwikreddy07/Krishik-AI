@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useForm } from 'react-hook-form';
-import { Sprout, Calendar, Plus, RefreshCw, ChevronDown, Wand2, Compass, AlertCircle, CheckCircle } from 'lucide-react';
+import { Sprout, Calendar, Plus, RefreshCw, ChevronDown, Wand2, Compass, AlertCircle, CheckCircle, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { AppContext } from '../context/AppContext';
 import { 
-  getCrops, addCrop, updateCropStage, 
+  getCrops, addCrop, updateCropStage, deleteCrop,
   getCropRecommendation, predictYield, recommendFertilizer,
   getWeatherByFarmer, getWeatherByLocation 
 } from '../services/api';
@@ -15,6 +15,7 @@ export const CropManagement = () => {
   const [loading, setLoading] = useState(true);
   const [addingCrop, setAddingCrop] = useState(false);
   const [activeTab, setActiveTab] = useState('tracker'); // tracker, recommender, yield, fertilizer
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null); // crop id pending deletion
 
   // Recommendation states
   const [recomLoading, setRecomLoading] = useState(false);
@@ -57,7 +58,7 @@ export const CropManagement = () => {
   const loadCrops = async () => {
     setLoading(true);
     try {
-      if (user?.id && user.id !== 0) {
+      if (user?.id && user.id !== 99999) {
         const data = await getCrops(user.id);
         setCrops(data);
       } else {
@@ -79,7 +80,7 @@ export const CropManagement = () => {
   const onAddCrop = async (data) => {
     setAddingCrop(true);
     try {
-      if (user?.id && user.id !== 0) {
+      if (user?.id && user.id !== 99999) {
         const newCrop = await addCrop({
           farmer_id: user.id,
           crop_name: data.name,
@@ -110,7 +111,7 @@ export const CropManagement = () => {
 
   const handleStageUpdate = async (cropId, newStage) => {
     try {
-      if (user?.id && user.id !== 0) {
+      if (user?.id && user.id !== 99999) {
         const updated = await updateCropStage(cropId, newStage);
         setCrops(prev => prev.map(c => c.id === cropId ? { ...c, crop_stage: updated.crop_stage } : c));
       } else {
@@ -119,6 +120,25 @@ export const CropManagement = () => {
       toast.success(`Stage updated to ${newStage}`);
     } catch {
       toast.error('Failed to update stage.');
+    }
+  };
+
+  const handleDeleteCrop = (cropId) => {
+    setConfirmDeleteId(cropId);
+  };
+
+  const confirmDelete = async () => {
+    if (!confirmDeleteId) return;
+    try {
+      if (user?.id && user.id !== 99999) {
+        await deleteCrop(confirmDeleteId);
+      }
+      setCrops(prev => prev.filter(c => c.id !== confirmDeleteId));
+      toast.success('Crop track removed.');
+    } catch {
+      toast.error('Failed to remove crop.');
+    } finally {
+      setConfirmDeleteId(null);
     }
   };
 
@@ -230,6 +250,33 @@ export const CropManagement = () => {
 
   return (
     <div className="space-y-8 page-fade-in">
+
+      {/* ── Custom Delete Confirmation Modal ───────────────────── */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm">
+          <div className="glass-panel p-8 rounded-2xl border border-red-500/30 max-w-sm w-full mx-4 shadow-[0_0_40px_rgba(239,68,68,0.15)]">
+            <div className="w-12 h-12 rounded-xl bg-red-500/10 border border-red-500/30 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-100 text-center mb-2">Remove Crop?</h3>
+            <p className="text-sm text-slate-400 text-center mb-6">This crop record will be removed from your tracking history. This action cannot be undone.</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteId(null)}
+                className="flex-1 py-2.5 px-4 border border-slate-600/40 text-slate-400 hover:text-slate-200 rounded-xl text-sm font-semibold transition-all hover:bg-slate-800/40"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-2.5 px-4 bg-red-600/20 hover:bg-red-600/40 text-red-400 hover:text-red-300 border border-red-500/30 rounded-xl text-sm font-semibold transition-all"
+              >
+                Remove Crop
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Header */}
       <div className="flex items-center gap-3">
@@ -292,8 +339,8 @@ export const CropManagement = () => {
                       <h4 className="text-lg font-bold text-slate-200">{cropName}</h4>
                       <p className="text-xs text-green-400/90 font-mono mt-0.5">{cropStage}</p>
                     </div>
-                    {/* Stage updater */}
-                    <div className="relative">
+                    {/* Stage updater + Delete */}
+                    <div className="flex items-center gap-2">
                       <select
                         value={cropStage}
                         onChange={e => handleStageUpdate(crop.id, e.target.value)}
@@ -301,6 +348,13 @@ export const CropManagement = () => {
                       >
                         {STAGES.map(s => <option key={s} value={s}>{s}</option>)}
                       </select>
+                      <button
+                        onClick={() => handleDeleteCrop(crop.id)}
+                        title="Remove crop track"
+                        className="w-7 h-7 flex items-center justify-center rounded-lg border border-red-500/20 bg-red-950/20 text-red-400 hover:bg-red-500/20 hover:border-red-500/40 transition-all"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
 

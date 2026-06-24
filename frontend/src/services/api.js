@@ -148,6 +148,13 @@ export const updateCropStage = async (cropId, stage) => {
 };
 
 /**
+ * Delete a crop entry by ID.
+ */
+export const deleteCrop = async (cropId) => {
+  await api.delete(`/crops/${cropId}`);
+};
+
+/**
  * ML crop recommendation based on soil parameters.
  */
 export const getCropRecommendation = async (params) => {
@@ -311,5 +318,16 @@ export const adminDeleteScheme = async (schemeId) => {
   return res.data;
 };
 
+// ── Notifications API ───────────────────────────────────────
+
+/**
+ * Get smart notifications for a farmer (crop alerts, pest warnings, market tips).
+ */
+export const getNotifications = async (farmerId) => {
+  const res = await api.get(`/notifications/${farmerId}`);
+  return res.data;
+};
+
 export default api;
+
 

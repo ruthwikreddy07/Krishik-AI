@@ -255,4 +255,7 @@ To verify predictions and run checks on local models during a demo, you can cons
 ---
 
 ## 🛡️ License
-Distributed under the MIT License. See `LICENSE` for more information.
+
+**© 2024-2026 D. Ruthwik Reddy. All Rights Reserved.**
+
+This project is proprietary software. No part of this codebase, including source code, machine learning models, datasets, or documentation, may be used, copied, modified, or distributed without explicit written permission from the owner. See [`LICENSE`](./LICENSE) for full terms.

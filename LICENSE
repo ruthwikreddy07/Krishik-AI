@@ -1,0 +1,85 @@
+PROPRIETARY SOFTWARE LICENSE
+============================
+
+Copyright (c) 2024-2026 D. Ruthwik Reddy. All Rights Reserved.
+
+NOTICE: This software and all associated source code, documentation, machine
+learning models, datasets, assets, and any other materials contained in this
+repository (collectively, the "Software") are the exclusive intellectual
+property of D. Ruthwik Reddy (the "Owner").
+
+1. GRANT OF RIGHTS
+   No rights are granted under this license. This Software is proprietary and
+   confidential. No license, express or implied, by estoppel or otherwise, to
+   any intellectual property rights is granted by this document or by any
+   conduct of the Owner.
+
+2. RESTRICTIONS
+   Unless you have obtained prior written authorization from the Owner, you
+   may NOT:
+
+   a) Use, execute, or run the Software or any part thereof for any purpose,
+      whether personal, academic, commercial, or otherwise.
+
+   b) Copy, reproduce, duplicate, or create backups of the Software or any
+      portion thereof.
+
+   c) Modify, adapt, translate, reverse-engineer, decompile, disassemble, or
+      create derivative works based on the Software.
+
+   d) Distribute, sublicense, lease, lend, sell, resell, transfer, publish,
+      or otherwise make available the Software, in whole or in part, to any
+      third party.
+
+   e) Use the Software, its architecture, algorithms, trained models, or any
+      implementation details as a reference, template, or basis for building
+      competing or similar products.
+
+   f) Remove, alter, or obscure any copyright, trademark, or other
+      proprietary notices contained in or on the Software.
+
+   g) Use any of the trained machine learning models, model weights, or
+      associated datasets included in this repository for inference,
+      fine-tuning, transfer learning, or any other purpose.
+
+3. VIEWING ONLY
+   The availability of this source code on a public repository (e.g., GitHub)
+   does NOT constitute a grant of license or permission to use. The code is
+   made visible solely for portfolio demonstration and academic evaluation
+   purposes. Viewing does not imply any right to use, copy, or redistribute.
+
+4. CONTRIBUTIONS
+   Any contributions (pull requests, issues, suggestions) submitted to this
+   repository shall become the exclusive property of the Owner, and the
+   contributor irrevocably assigns all rights, title, and interest in such
+   contributions to the Owner.
+
+5. NO WARRANTY
+   THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+6. LIMITATION OF LIABILITY
+   IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING
+   FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+   DEALINGS IN THE SOFTWARE.
+
+7. TERMINATION
+   Any unauthorized use of this Software automatically terminates any implied
+   permission and may result in legal action under applicable copyright and
+   intellectual property laws.
+
+8. GOVERNING LAW
+   This license shall be governed by and construed in accordance with the laws
+   of India. Any disputes arising under this license shall be subject to the
+   exclusive jurisdiction of the courts in Telangana, India.
+
+9. CONTACT
+   For licensing inquiries, collaboration requests, or written permission,
+   contact the Owner directly via the repository profile or associated email.
+
+---
+
+BY ACCESSING THIS REPOSITORY, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD,
+AND AGREE TO BE BOUND BY THE TERMS OF THIS LICENSE.

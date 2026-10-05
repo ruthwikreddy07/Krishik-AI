@@ -8,18 +8,18 @@ Download the following datasets from Kaggle and place them here before running t
 |---|---|---|
 | Crop Recommendation | `Crop_recommendation.csv` | [Kaggle: Crop Recommendation](https://www.kaggle.com/datasets/atharvaingle/crop-recommendation-dataset) |
 | Disease Detection | `PlantVillage/` (folder) | [Kaggle: PlantVillage](https://www.kaggle.com/datasets/emmarex/plantdisease) |
-| Yield Prediction | `crop_production.csv` | [Kaggle: Crop Production India](https://www.kaggle.com/datasets/abhinand05/crop-production-in-india) |
-| Price Prediction | `market_prices.csv` | [Agmarknet](https://agmarknet.gov.in) or custom scraped data |
-| Fertilizer Recommendation | `Fertilizer_Prediction.csv` | [Kaggle: Fertilizer Prediction](https://www.kaggle.com/datasets/gdabhishek/fertilizer-prediction) |
+| Yield Prediction | `Telangana_CropStats.csv` | Telangana DES & Open Data Portal |
+| Price Prediction | `market_prices_clean.csv` | [Agmarknet](https://agmarknet.gov.in) / data.gov.in |
+| Fertilizer Recommendation | `Fertilizer_Prediction_v2.csv` | [Kaggle: Fertilizer Prediction](https://www.kaggle.com/datasets/gdabhishek/fertilizer-prediction) (Cleaned) |
 
 ## Expected Directory Structure
 
 ```
 datasets/
 ├── Crop_recommendation.csv
-├── Fertilizer_Prediction.csv
-├── crop_production.csv
-├── market_prices.csv
+├── Fertilizer_Prediction_v2.csv
+├── Telangana_CropStats.csv
+├── market_prices_clean.csv
 └── PlantVillage/
     ├── Apple___Apple_scab/
     ├── Apple___Black_rot/

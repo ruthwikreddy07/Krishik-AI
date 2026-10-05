@@ -80,6 +80,11 @@ class FarmerProfile(BaseModel):
     longitude: float | None
     land_size_acres: float
     soil_type: str
+    soil_n: float | None = None
+    soil_p: float | None = None
+    soil_k: float | None = None
+    soil_ph: float | None = None
+    season: str | None = None
     water_source: str
     is_verified: bool
 
@@ -97,6 +102,11 @@ class UpdateProfileRequest(BaseModel):
     longitude: float | None = None
     land_size_acres: float | None = None
     soil_type: str | None = None
+    soil_n: float | None = None
+    soil_p: float | None = None
+    soil_k: float | None = None
+    soil_ph: float | None = None
+    season: str | None = None
     water_source: str | None = None
 
 

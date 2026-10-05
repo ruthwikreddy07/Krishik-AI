@@ -328,6 +328,20 @@ export const getNotifications = async (farmerId) => {
   return res.data;
 };
 
+// ── 4-Stage Pipeline API ─────────────────────────────────────
+
+/**
+ * Run the unified end-to-end Crop-to-Market pipeline.
+ * Chains: Crop Recommendation → Yield Prediction → Price Forecast → Mandi Optimizer.
+ *
+ * @param {Object} params - PipelineRequest fields
+ * @returns {Object} PipelineResponse with stages, best_mandi, net_return_inr, summary
+ */
+export const runPipeline = async (params) => {
+  const res = await api.post('/pipeline/run', params, { timeout: 90000 });
+  return res.data;
+};
+
 export default api;
 
 

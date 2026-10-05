@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from ..core.database import get_db
-from ..models.schemas import Crop, Farmer
+from ..models.schemas import Crop, Farmer, MLPrediction
 from ..ml.crop_recommendation import recommend_crop
 from .auth import get_current_farmer
 
@@ -65,7 +65,11 @@ class CropRecommendResponse(BaseModel):
 # ── Endpoints ───────────────────────────────────────────────
 
 @router.post("/recommend", response_model=CropRecommendResponse)
-def get_crop_recommendation(req: CropRecommendRequest):
+def get_crop_recommendation(
+    req: CropRecommendRequest,
+    current_farmer: Farmer = Depends(get_current_farmer),
+    db: Session = Depends(get_db)
+):
     """ML-powered crop recommendation using Random Forest model."""
     result = recommend_crop(
         nitrogen=req.nitrogen,
@@ -76,6 +80,22 @@ def get_crop_recommendation(req: CropRecommendRequest):
         ph=req.ph,
         rainfall=req.rainfall,
     )
+
+    # Save prediction to ml_predictions for AI assistant context
+    if current_farmer:
+        try:
+            prediction = MLPrediction(
+                farmer_id=current_farmer.id,
+                prediction_type="crop",
+                input_summary=f"N:{req.nitrogen} P:{req.phosphorus} K:{req.potassium} pH:{req.ph} Temp:{req.temperature} Hum:{req.humidity} Rain:{req.rainfall}",
+                result_summary=f"{result['recommended_crop']} ({result['confidence']:.0f}% confidence)",
+                result_data=result,
+            )
+            db.add(prediction)
+            db.commit()
+        except Exception:
+            db.rollback()  # Don't fail the endpoint if logging fails
+
     return result
 @router.post("", response_model=CropResponse, status_code=status.HTTP_201_CREATED)
 def add_crop(

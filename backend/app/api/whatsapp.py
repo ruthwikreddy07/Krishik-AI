@@ -13,7 +13,6 @@ from ..core.config import settings
 from ..models.schemas import Farmer, Crop, DiseaseRecord, GovernmentScheme, MarketPrice, UserActivity
 from ..ml.disease_detection import detect_disease
 from ..ml.price_prediction import predict_price
-from .chat import ChatRequest, ChatMessage
 
 logger = logging.getLogger("farmer_assistant")
 router = APIRouter(prefix="/api/whatsapp", tags=["WhatsApp Webhook"])

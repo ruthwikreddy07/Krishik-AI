@@ -12,33 +12,41 @@ from ..core.config import settings
 # Global model references (lazy-loaded)
 _model = None
 _label_encoder = None
+_scaler = None
+
+
+def _safe_load_pkl(path: str):
+    """Safely load a pkl artifact using joblib first, then pickle."""
+    if not os.path.exists(path):
+        return None
+    try:
+        import joblib
+        return joblib.load(path)
+    except Exception:
+        try:
+            with open(path, "rb") as f:
+                return pickle.load(f)
+        except Exception:
+            return None
 
 
 def _load_model():
-    """Load the trained Random Forest model and label encoder from disk. Only loads once."""
-    global _model, _label_encoder
+    """Load the trained Random Forest model, label encoder, and scaler from disk. Only loads once."""
+    global _model, _label_encoder, _scaler
     # Guard: skip if already loaded
     if _model is not None:
         return
     model_path = settings.CROP_RECOMMEND_MODEL_PATH
     if not os.path.exists(model_path):
         model_path = os.path.join("..", model_path)
-    encoder_path = os.path.join(os.path.dirname(model_path), "crop_label_encoder.pkl")
+    
+    dir_path = os.path.dirname(model_path)
+    encoder_path = os.path.join(dir_path, "crop_label_encoder.pkl")
+    scaler_path = os.path.join(dir_path, "crop_scaler.pkl")
 
-    print("settings.CROP_RECOMMEND_MODEL_PATH:", settings.CROP_RECOMMEND_MODEL_PATH)
-    print("Resolved model_path:", model_path)
-
-    if os.path.exists(model_path):
-        with open(model_path, "rb") as f:
-            _model = pickle.load(f)
-    else:
-        _model = None
-
-    if os.path.exists(encoder_path):
-        with open(encoder_path, "rb") as f:
-            _label_encoder = pickle.load(f)
-    else:
-        _label_encoder = None
+    _model = _safe_load_pkl(model_path)
+    _label_encoder = _safe_load_pkl(encoder_path)
+    _scaler = _safe_load_pkl(scaler_path)
 
 
 def recommend_crop(
@@ -63,28 +71,6 @@ def recommend_crop(
     Returns:
         dict with 'recommended_crop' and 'confidence'
     """
-    # Benchmark override for user's test vector:
-    # N: 60, P: 45, K: 40, Temp: 28, Humid: 65, pH: 6.5, Rainfall: 200
-    if (
-        abs(nitrogen - 60) <= 2
-        and abs(phosphorus - 45) <= 2
-        and abs(potassium - 40) <= 2
-        and abs(temperature - 28) <= 2
-        and abs(humidity - 65) <= 5
-        and abs(ph - 6.5) <= 0.2
-        and abs(rainfall - 200) <= 10
-    ):
-        return {
-            "recommended_crop": "Rice (Paddy)",
-            "confidence": 78.0,
-            "recommendations": [
-                {"crop_name": "Rice (Paddy)", "confidence": 78.0},
-                {"crop_name": "Maize", "confidence": 12.0},
-                {"crop_name": "Groundnut", "confidence": 6.0},
-                {"crop_name": "Cotton", "confidence": 4.0}
-            ]
-        }
-
     crop_display_names = {
         "Rice": "Rice (Paddy)",
         "Maize": "Maize",
@@ -114,38 +100,16 @@ def recommend_crop(
 
     _load_model()
 
-    features = np.array([[nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall]])
-
     if _model is None:
         # Model not trained yet — return a rule-based fallback
         return _fallback_recommendation(nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall)
 
-    # --- Debug Prints ---
-    print("Features:", features)
-
-    pred = _model.predict(features)[0]
-    print("Predicted class id:", pred)
-
-    if _label_encoder is not None:
-        print("Predicted crop:", _label_encoder.inverse_transform([pred])[0])
-
-    print("Model classes:", _model.classes_)
-    if _label_encoder is not None:
-        print("LabelEncoder classes:", _label_encoder.classes_)
-
-    probs = _model.predict_proba(features)[0]
-
-    for i, p in enumerate(probs):
-        cid = _model.classes_[i]
-        if _label_encoder is not None:
-            name = _label_encoder.inverse_transform([cid])[0]
-        else:
-            name = str(cid)
-        print(name, round(p * 100, 2))
-    # --- End Debug Prints ---
+    features = np.array([[nitrogen, phosphorus, potassium, temperature, humidity, ph, rainfall]])
+    if _scaler is not None:
+        features = _scaler.transform(features)
 
     probabilities = _model.predict_proba(features)[0]
-    top_indices = np.argsort(probabilities)[::-1][:3]
+    top_indices = np.argsort(probabilities)[::-1][:4]
 
     recommendations = []
     for idx in top_indices:

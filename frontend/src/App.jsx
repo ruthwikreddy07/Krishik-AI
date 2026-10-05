@@ -16,6 +16,7 @@ import { AIChatbot } from './pages/AIChatbot';
 import { Notifications } from './pages/Notifications';
 import { Profile } from './pages/Profile';
 import { PestRisk } from './pages/PestRisk';
+import { Pipeline } from './pages/Pipeline';
 import { AdminLogin } from './pages/AdminLogin';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ExpertDashboard } from './pages/ExpertDashboard';
@@ -130,6 +131,7 @@ function AppContent() {
         <Route path="/schemes" element={<ProtectedLayout><Schemes /></ProtectedLayout>} />
         <Route path="/chat" element={<ProtectedLayout><AIChatbot /></ProtectedLayout>} />
         <Route path="/pest-risk" element={<ProtectedLayout><PestRisk /></ProtectedLayout>} />
+        <Route path="/pipeline" element={<ProtectedLayout><Pipeline /></ProtectedLayout>} />
         <Route path="/notifications" element={<ProtectedLayout><Notifications /></ProtectedLayout>} />
         <Route path="/profile" element={<ProtectedLayout><Profile /></ProtectedLayout>} />
 

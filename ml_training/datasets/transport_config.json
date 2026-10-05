@@ -1,0 +1,14 @@
+{
+    "freight_rate_per_quintal_km": 0.30,
+    "currency": "INR",
+    "distance_unit": "km",
+    "quantity_unit": "quintal",
+    "cost_formula": "distance_km * quantity_quintal * freight_rate_per_quintal_km",
+    "net_return_formula": "(modal_price * quantity_quintal) - transportation_cost",
+    "rate_type": "assumption",
+    "benchmark_sources": [
+        "Agricultural Value Chain Case Studies (e.g. Onion & Commodity Supply Chains ~Rs 0.28/quintal-km)",
+        "Commercial Freight Logistics Benchmarks (loaded 32-ft vehicle ~Rs 26-37/km for ~100 quintal payload ~Rs 0.30/quintal-km)"
+    ],
+    "description": "Estimated baseline freight cost for Telangana agricultural produce transit from farm/local APMC to destination mandi."
+}

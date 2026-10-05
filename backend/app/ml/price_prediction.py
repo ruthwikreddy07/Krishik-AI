@@ -67,13 +67,25 @@ def predict_price(crop_name: str, days_ahead: int = 7) -> dict:
         # Standardize search term: map common terms
         mapped_names = [crop_name, crop_name.lower(), crop_name.title()]
         if crop_name.lower() in ("rice", "paddy"):
-            mapped_names.extend(["Paddy (Dhan)(Common)", "paddy (dhan)(common)", "Rice"])
+            mapped_names.extend(["Paddy (Dhan)(Common)", "paddy (dhan)(common)", "Rice", "Paddy(Common)"])
         elif crop_name.lower() == "cotton":
             mapped_names.extend(["Cotton", "cotton"])
         elif crop_name.lower() == "maize":
             mapped_names.extend(["Maize", "maize"])
         elif crop_name.lower() == "groundnut":
             mapped_names.extend(["Groundnut", "groundnut"])
+        elif crop_name.lower() in ("chickpea", "gram", "bengal gram"):
+            mapped_names.extend(["Chickpea", "chickpea", "Bengal Gram(Gram)(Whole)", "bengal gram(gram)(whole)"])
+        elif crop_name.lower() in ("pigeon peas", "red gram", "arhar", "tur"):
+            mapped_names.extend(["Pigeon Peas", "pigeon peas", "Red Gram", "Arhar (Tur/Red Gram)(Whole)"])
+        elif crop_name.lower() == "tomato":
+            mapped_names.extend(["Tomato", "tomato"])
+        elif crop_name.lower() == "onion":
+            mapped_names.extend(["Onion", "onion"])
+        elif crop_name.lower() == "potato":
+            mapped_names.extend(["Potato", "potato"])
+        elif crop_name.lower() in ("chilli", "chilli red", "green chilli"):
+            mapped_names.extend(["Chilli", "Chilli Red", "Green Chilli", "chilli"])
 
         records = (
             db.query(MarketPrice)

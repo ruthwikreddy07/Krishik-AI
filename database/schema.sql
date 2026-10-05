@@ -14,6 +14,11 @@ CREATE TABLE IF NOT EXISTS farmers (
     longitude DECIMAL(9, 6) NULL,
     land_size_acres DECIMAL(5, 2) NOT NULL,
     soil_type VARCHAR(50) NOT NULL,
+    soil_n DECIMAL(6, 2) NULL,          -- Nitrogen (kg/ha)
+    soil_p DECIMAL(6, 2) NULL,          -- Phosphorus (kg/ha)
+    soil_k DECIMAL(6, 2) NULL,          -- Potassium (kg/ha)
+    soil_ph DECIMAL(4, 2) NULL,         -- pH level
+    season VARCHAR(20) NULL,            -- Kharif / Rabi / Zaid
     water_source VARCHAR(50) NOT NULL,
     is_verified BOOLEAN DEFAULT FALSE,
     otp_code VARCHAR(100) NULL,
@@ -100,4 +105,31 @@ CREATE TABLE IF NOT EXISTS user_activity (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE SET NULL,
     INDEX (farmer_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 8. Chat History Table (stores every conversation message per farmer)
+CREATE TABLE IF NOT EXISTS chat_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    farmer_id INT NOT NULL,
+    sender ENUM('user', 'bot') NOT NULL,
+    message TEXT NOT NULL,
+    language VARCHAR(5) NOT NULL DEFAULT 'en',
+    session_id VARCHAR(36) NOT NULL,    -- UUID grouping messages into conversations
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE,
+    INDEX (farmer_id, session_id),
+    INDEX (farmer_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 9. ML Predictions Table (stores every ML result per farmer for assistant context)
+CREATE TABLE IF NOT EXISTS ml_predictions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    farmer_id INT NOT NULL,
+    prediction_type VARCHAR(20) NOT NULL,   -- crop, yield, price, fertilizer, mandi
+    input_summary TEXT NOT NULL,             -- compact description of inputs
+    result_summary TEXT NOT NULL,            -- compact description of result
+    result_data JSON NULL,                   -- full structured result for programmatic use
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (farmer_id) REFERENCES farmers(id) ON DELETE CASCADE,
+    INDEX (farmer_id, prediction_type, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

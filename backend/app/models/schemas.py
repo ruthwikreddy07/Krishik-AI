@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Numeric, Boolean, DateTime, Date, Text, ForeignKey
+from sqlalchemy import Column, Integer, String, Numeric, Boolean, DateTime, Date, Text, Enum, ForeignKey, JSON
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -17,6 +17,11 @@ class Farmer(Base):
     longitude = Column(Numeric(9, 6), nullable=True)
     land_size_acres = Column(Numeric(5, 2), nullable=False)
     soil_type = Column(String(50), nullable=False)
+    soil_n = Column(Numeric(6, 2), nullable=True)      # Nitrogen (kg/ha)
+    soil_p = Column(Numeric(6, 2), nullable=True)      # Phosphorus (kg/ha)
+    soil_k = Column(Numeric(6, 2), nullable=True)      # Potassium (kg/ha)
+    soil_ph = Column(Numeric(4, 2), nullable=True)     # pH level
+    season = Column(String(20), nullable=True)          # Kharif / Rabi / Zaid
     water_source = Column(String(50), nullable=False)
     is_verified = Column(Boolean, default=False)
     otp_code = Column(String(100), nullable=True)
@@ -29,6 +34,8 @@ class Farmer(Base):
     disease_records = relationship("DiseaseRecord", back_populates="farmer", cascade="all, delete-orphan")
     notifications = relationship("Notification", back_populates="farmer", cascade="all, delete-orphan")
     activities = relationship("UserActivity", back_populates="farmer", cascade="all, delete-orphan")
+    chat_history = relationship("ChatHistory", back_populates="farmer", cascade="all, delete-orphan")
+    ml_predictions = relationship("MLPrediction", back_populates="farmer", cascade="all, delete-orphan")
 
 
 class Crop(Base):
@@ -153,4 +160,36 @@ class Staff(Base):
     password_hash = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False)  # 'admin' or 'expert'
     created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class ChatHistory(Base):
+    """Stores every chat message per farmer for the AI assistant."""
+    __tablename__ = 'chat_history'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    farmer_id = Column(Integer, ForeignKey('farmers.id', ondelete='CASCADE'), nullable=False, index=True)
+    sender = Column(Enum('user', 'bot'), nullable=False)
+    message = Column(Text, nullable=False)
+    language = Column(String(5), nullable=False, default='en')
+    session_id = Column(String(36), nullable=False, index=True)  # UUID grouping messages
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    farmer = relationship("Farmer", back_populates="chat_history")
+
+
+class MLPrediction(Base):
+    """Stores every ML prediction result per farmer for assistant context."""
+    __tablename__ = 'ml_predictions'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    farmer_id = Column(Integer, ForeignKey('farmers.id', ondelete='CASCADE'), nullable=False, index=True)
+    prediction_type = Column(String(20), nullable=False)   # crop, yield, price, fertilizer, mandi
+    input_summary = Column(Text, nullable=False)            # compact description of inputs
+    result_summary = Column(Text, nullable=False)           # compact description of result
+    result_data = Column(JSON, nullable=True)               # full structured result
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    # Relationships
+    farmer = relationship("Farmer", back_populates="ml_predictions")
 

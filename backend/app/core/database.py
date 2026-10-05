@@ -41,7 +41,7 @@ def check_db_connection() -> bool:
 
 def init_db():
     """Create all tables defined in the ORM models if they don't exist."""
-    from ..models.schemas import Base, MarketPrice, GovernmentScheme
+    from ..models.schemas import Base, MarketPrice, GovernmentScheme, ChatHistory, MLPrediction
     Base.metadata.create_all(bind=engine)
 
     # Self-healing migration for missing duration_days column
@@ -104,6 +104,29 @@ def init_db():
                 print("Successfully migrated translation and eligibility columns in 'government_schemes'.")
             except Exception as e:
                 print(f"Failed to migrate 'government_schemes' translation/eligibility columns: {e}")
+
+        # Self-healing migration for missing soil chemistry columns in farmers
+        try:
+            conn.execute(text("SELECT soil_n FROM farmers LIMIT 1"))
+        except Exception:
+            try:
+                print("Schema drift detected: Soil chemistry columns missing in 'farmers'. Altering table...")
+                soil_queries = [
+                    "ALTER TABLE farmers ADD COLUMN soil_n DECIMAL(6, 2) NULL",
+                    "ALTER TABLE farmers ADD COLUMN soil_p DECIMAL(6, 2) NULL",
+                    "ALTER TABLE farmers ADD COLUMN soil_k DECIMAL(6, 2) NULL",
+                    "ALTER TABLE farmers ADD COLUMN soil_ph DECIMAL(4, 2) NULL",
+                    "ALTER TABLE farmers ADD COLUMN season VARCHAR(20) NULL",
+                ]
+                for query in soil_queries:
+                    try:
+                        conn.execute(text(query))
+                    except Exception:
+                        pass
+                conn.commit()
+                print("Successfully migrated soil chemistry columns in 'farmers'.")
+            except Exception as e:
+                print(f"Failed to migrate 'farmers' soil columns: {e}")
 
     # Seed/Reset government_schemes if empty or if containing garbled characters or missing column/eligibility data
     db = SessionLocal()
@@ -307,11 +330,11 @@ def init_db():
     db = SessionLocal()
     try:
         if db.query(MarketPrice).count() == 0:
-            # Locate market_prices.csv
+            # Locate market_prices_clean.csv
             possible_paths = [
-                os.path.join(os.getcwd(), "ml_training", "datasets", "market_prices.csv"),
-                os.path.join(os.getcwd(), "..", "ml_training", "datasets", "market_prices.csv"),
-                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ml_training", "datasets", "market_prices.csv"))
+                os.path.join(os.getcwd(), "ml_training", "datasets", "market_prices_clean.csv"),
+                os.path.join(os.getcwd(), "..", "ml_training", "datasets", "market_prices_clean.csv"),
+                os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", "ml_training", "datasets", "market_prices_clean.csv")),
             ]
             csv_path = None
             for p in possible_paths:
@@ -341,7 +364,7 @@ def init_db():
                         db.commit()
                         print(f"Successfully seeded {len(records)} market price records into database.")
             else:
-                print("Could not locate market_prices.csv for seeding.")
+                print("Could not locate market_prices_clean.csv for seeding.")
     except Exception as e:
         print(f"Error seeding database market_prices: {e}")
     finally:

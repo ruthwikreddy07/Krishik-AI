@@ -234,21 +234,6 @@ python -m compileall backend/app
 cd frontend && npm run build
 ```
 
----
-
-## 📜 Research & Citation
-
-If you use Krishik AI or its data-to-decision methodology in academic work, please cite:
-
-```bibtex
-@article{krishik_ai_2026,
-  title={Krishik AI: A Transportation-Aware Integrated Farm-to-Market Decision Pipeline for Smallholder Farmers in Telangana using Cascaded Machine Learning},
-  author={Reddy, D. Ruthwik and Kumar, B. Shiva and Harshavardhan, C. and Murthy, G. Vishnu},
-  journal={School of Engineering, Anurag University},
-  year={2026},
-  address={Hyderabad, India}
-}
-```
 
 ---
 

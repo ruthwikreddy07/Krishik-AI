@@ -1,261 +1,259 @@
-# 🌾 Krishik AI — Localized Intelligent Agronomist Platform
+# 🌾 Krishik AI — Transportation-Aware Farm-to-Market Decision Pipeline for Telangana
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-005571?style=for-the-badge&logo=fastapi)](https://fastapi.tiangolo.com)
 [![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react)](https://react.dev)
 [![MySQL](https://img.shields.io/badge/MySQL-00758F?style=for-the-badge&logo=mysql&logoColor=white)](https://www.mysql.com)
 [![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)](https://www.tensorflow.org)
+[![XGBoost](https://img.shields.io/badge/XGBoost-185a9d?style=for-the-badge&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io)
 [![Scikit-Learn](https://img.shields.io/badge/scikit_learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white)](https://scikit-learn.org)
 [![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 
-**Krishik AI (కృషిక్ AI)** is a premium, full-stack, AI-powered agronomist platform designed to support farmers in Telangana, India. By combining predictive machine learning models, deep learning visual diagnostics, real-time meteorological indicators, market intelligence, and WhatsApp integrations, Krishik AI serves as a 24/7 localized assistant to maximize yields, protect crops, and improve profit margins.
+**Krishik AI (కృషిక్ AI)** is an intelligent, localized agricultural decision-support platform engineered for smallholder farmers across Telangana, India. Unlike fragmented single-task agricultural tools, Krishik AI introduces a **cascaded 4-stage machine learning and transportation-aware decision pipeline** that connects pre-sowing agronomic choices directly with post-harvest market economics and freight friction.
+
+The platform provides dual-channel access through a modern **React 18 single-page application** and an automated **bilingual (Telugu & English) WhatsApp interface**, enabling farmers to maximize net returns, manage crop pathology, and optimize market logistics.
 
 ---
 
-## 🌟 Key Features
+## 🚀 Cascaded Farm-to-Market Pipeline Architecture
 
-### 1. 🚜 Interactive Dashboard
-* **Dynamic Welcome Banner**: Displays farm size, soil composition, and primary irrigation sources configured in the profile.
-* **Hyperlocal Weather Indicators**: Displays live temperature, relative humidity, wind speed, soil temperature, and soil moisture.
-* **Smart Task Planner**: Auto-generates seasonal tasks (e.g. fertilizer split-dressing, heat mulching alerts, pre-rain warnings) based on registered crops and real-time weather.
-* **Advisory Notifications**: Prioritized alerts for severe weather warnings, upcoming crop harvests, and market price spikes.
+The primary innovation of Krishik AI is its sequential 4-stage decision pipeline, linking agronomic suitability to spatial market arbitrage:
 
-### 2. 🌾 Crop Lifecycle & ML Advisories
-* **Random Forest Crop Recommender**: Analyzes soil nutrients ($N, P, K$, $pH$) and weather parameters (autofilled from weather API or entered manually) to recommend the most suitable crop from **22 supported varieties**.
-* **XGBoost Yield Predictor**: Forecasts total yield in quintals based on farm acreage, crop type, soil type, and atmospheric coordinates.
-* **Decision Tree Fertilizer Advisor**: Recommends fertilizer split-dosage schedules and volume (kg/acre) based on soil category, active growth phase, and nutrient deficiencies.
-* **Lifecycle Tracker**: Interactive tracking boards displaying elapsed days and growth progress across 7 growth phases (Sowing $\rightarrow$ Harvested).
-
-### 3. 📸 Deep Learning Plant Disease Scanner
-* **Visual CNN Diagnosis**: Analyzes uploaded leaf photos using a fine-tuned MobileNetV2 CNN classifier to instantly diagnose **15 classes of crop diseases** (Paddy, Tomato, Potato, Pepper) with match confidence percentage.
-* **Remedy & Action Guidelines**: Provides immediate biological and chemical treatment instructions in Telugu and English.
-* **Expert Review Loop**: Connects farmers directly to agronomists. When a farmer uploads a scan, it populates the expert dashboard where certified agronomists review, verify, and add custom recommendations.
-
-### 4. 💰 Mandi Price & Smart Arbitrage
-* **LSTM Mandi Price Forecasting**: Predicts commodity prices up to 30 days ahead using a trained LSTM recurrent neural network.
-* **Smart Arbitrage Calculator**: Dynamically calculates potential gross returns, transport costs, and net margins across 5 local mandis (Warangal, Suryapet, Nalgonda, Khammam, Hyd Bowenpally) to identify the most profitable market.
-
-### 5. ☀️ Hyperlocal Weather & Irrigation Advisories
-* **7-Day Outlook**: Graphical charts displaying temperature variations and rain probability using Open-Meteo.
-* **Smart Irrigation Assistant**: Automatically analyzes evaporation rates and soil moisture thresholds to give clear irrigate/skip instructions in Telugu.
-
-### 6. 🏛️ Government Schemes & Eligibility
-* **Welfare Schemes Directory**: Comprehensive lookup for state (Rythu Bandhu, Rythu Bima, Rythu Vedika, TMIP) and central (PM-KISAN, PMFBY, KCC, e-NAM, PKVY) welfare benefits.
-* **Dynamic Eligibility Calculator**: Computes whether a farmer qualifies based on age, patta land acreage, and caste category.
-
-### 7. 💬 WhatsApp Integration (Meta Cloud & Twilio)
-* **Interactive Menu Bot**: Farmers can interact with a structured menu to query weather, schemes, or check commodity prices.
-* **Generative Ask AI**: Natural language questions are sent to the Gemini API with the farmer's registered crop and soil context pre-appended.
-* **Snap & Diagnose**: Farmers can upload leaf images directly via WhatsApp. The webhook intercepts the image, passes it to the CNN classifier, saves the guest activity safely, and replies with the diagnosis text.
+```
+                    FARMER INPUTS
+            (Soil NPK, pH, Location, Land Area)
+                         │
+                         ▼
+┌────────────────────────────────────────────────────────┐
+│ STAGE 1: Crop Recommendation (Random Forest)           │
+│ Input: N, P, K, Temp, Humidity, pH, Rainfall (7 vars)  │
+│ Output: Optimal Crop Variety (22 Classes)              │
+│ Validation: 98.95% ± 0.42% (10-Fold Stratified CV)     │
+└────────────────────────┬───────────────────────────────┘
+                         │ Recommended Crop & Area
+                         ▼
+┌────────────────────────────────────────────────────────┐
+│ STAGE 2: Acreage-Aware Yield Estimation (XGBoost)      │
+│ Input: Year, District, Season, Crop, Area (ha)         │
+│ Leakage Control: Gross production isolated from inputs │
+│ Output: Predicted Yield (t/ha) ➔ Harvest (Quintals)   │
+│ Validation: Holdout R² = 0.9074, MAE = 0.4834 t/ha     │
+└────────────────────────┬───────────────────────────────┘
+                         │ Harvest Volume (Q)
+                         ▼
+┌────────────────────────────────────────────────────────┐
+│ STAGE 3: Temporal Price Forecasting (Stacked LSTM)     │
+│ Input: Historical Mandi Prices (30-day window)         │
+│ Architecture: 2-Layer LSTM (64 units, dropout = 0.20)  │
+│ Output: Forecasted Wholesale Prices (₹/Quintal)        │
+│ Validation: Normalized MSE < 0.0032, Dir. Acc. = 73.8% │
+└────────────────────────┬───────────────────────────────┘
+                         │ Forecasted Prices (P̂_m)
+                         ▼
+┌────────────────────────────────────────────────────────┐
+│ STAGE 4: Transportation-Aware Multi-Mandi Optimizer   │
+│ Matrix: 40,200 OSRM Road Distances (201 APMC Mandis)   │
+│ Formula: R_net(m) = Q × [ P̂_m - (d_m × c_f) ]         │
+│ Freight Model: Break-even Transit Sensitivity Analysis │
+│ Output: Ranked Mandis by Net Return (₹)                │
+└────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 🏗️ Technical Architecture
+## 🌟 Comprehensive Feature Set
 
-```mermaid
-graph TD
-    User([Farmer / Staff]) -->|React Web App| Frontend[Vite + React.js]
-    User -->|Mobile WhatsApp| WhatsAppWebhook[FastAPI WhatsApp Webhook]
-    
-    subgraph Backend Services [FastAPI Server]
-        Auth[JWT Auth & OTP Router]
-        CropService[Crop & ML Router]
-        DiseaseService[Disease Scanner Router]
-        MarketService[Market Price & LSTM Router]
-        WeatherService[Weather & Advisory Router]
-    end
+### 1. 🚜 4-Stage Core Farm-to-Market Pipeline
+* **Random Forest Crop Selection**: Trained on 7,700 audited records across 22 crop classes using soil macronutrients ($N, P, K$), pH, and localized meteorological variables.
+* **XGBoost Yield Regressor**: Trained on 5,591 Telangana crop statistics across 10 legacy districts and 65 crops (1997–2014) with strict target leakage prevention.
+* **Stacked LSTM Price Predictor**: Trained on 571,183 cleaned market records across 2021–2026, predicting recursive 7-, 14-, and 30-day commodity price trajectories.
+* **OSRM Multi-Mandi Optimizer**: Evaluates net realizations across all 201 geocoded Telangana APMC mandis using 40,200 precomputed road-network distances and a configurable freight-rate parameter ($c_f$).
 
-    Frontend -->|HTTP Requests| BackendServices
-    WhatsAppWebhook -->|HTTP Post| BackendServices
+### 2. 📸 Deep Learning Plant Pathology Scanner
+* **MobileNetV2 Transfer Learning**: Classifies 34 disease classes across 7 crops (Rice, Cotton, Maize, Chilli, Tomato, Potato, Bell Pepper) trained on 34,526 leaf images.
+* **Human-in-the-Loop Triage**: Low-confidence diagnostic predictions (< 70%) are automatically flagged and routed to certified agricultural officers for verification.
+* **Bilingual Advisory**: Delivers immediate chemical and organic treatment protocols in both Telugu and English.
 
-    subgraph Machine Learning Layer
-        CNN[MobileNetV2 Disease Model]
-        RF[Random Forest Crop Model]
-        XGB[XGBoost Yield Model]
-        DT[Decision Tree Fertilizer Model]
-        LSTM[LSTM Mandi Price Model]
-    end
+### 3. 🧪 Fertilizer & Pest Advisory
+* **Random Forest Fertilizer Model**: Recommends fertilizer types (Urea, DAP, MOP, 20-20) and dosage schedules based on soil category, crop variety, and nutrient levels (76.91% CV accuracy, 77.19% macro F1).
+* **Rule-Based Pest Warnings**: Identifies environmental risk windows for pest infestations based on live temperature and relative humidity triggers.
 
-    BackendServices --> MLModels[ML Models]
-    MLModels --> CNN
-    MLModels --> RF
-    MLModels --> XGB
-    MLModels --> DT
-    MLModels --> LSTM
+### 4. ☀️ Hyperlocal Weather & Irrigation Management
+* **Open-Meteo Integration**: Live temperature, precipitation probabilities, wind speed, soil temperature, and moisture levels.
+* **Smart Irrigation Scheduler**: Dynamic evapotranspiration and soil moisture thresholds provide actionable irrigate/skip advisories.
 
-    BackendServices -->|SQL Queries| DB[(MySQL Database)]
-    BackendServices -->|External APIs| External[Open-Meteo & Gemini APIs]
-```
+### 5. 🏛️ Government Schemes & Subsidy Explorer
+* **State & Central Directory**: Complete informational guides for Rythu Bandhu, Rythu Bima, Rythu Vedika, PM-KISAN, PMFBY, and KCC.
+* **Eligibility Engine**: Instant verification based on farmer age, landholding acreage, and social category.
 
-## ⚙️ Data Flow & ML Pipelines
+### 6. 💬 Dual-Channel Deployment (Web & WhatsApp)
+* **React 18 Single-Page Application**: Responsive dashboard featuring interactive task planners, mandi return comparison charts, and leaf photo uploads.
+* **Bilingual WhatsApp Chatbot**: Integrated via Meta Cloud API and Twilio webhooks, enabling smallholders to send photos for disease diagnosis, query market rates, and receive weather alerts directly through WhatsApp.
 
-### 1. ML Model Inference Pipeline
-This diagram shows how user inputs (soil metrics, leaf photos, historical mandi rates) are processed, scaled, and run through our ML/DL classifiers to generate dynamic agronomic outputs:
+---
 
-```mermaid
-flowchart TD
-    subgraph Inputs [User / Sensor Data]
-        A[Soil Nutrients NPK & pH]
-        B[Leaf Photo JPEG/PNG]
-        C[Historical Mandi Prices]
-    end
+## 🧠 Machine Learning Performance & Benchmarks
 
-    subgraph Preprocessing [Data Processing Layer]
-        D[Vite Weather API Autofill]
-        E[Image Resizer 224x224 & convert RGB]
-        F[MinMax Scaler transform]
-    end
-
-    subgraph Inference [Model Inference Layer]
-        G[Random Forest Classifier]
-        H[MobileNetV2 CNN Model]
-        I[XGBoost & Decision Tree]
-        J[LSTM Recurrent Neural Network]
-    end
-
-    subgraph Outputs [Dynamic Advisors]
-        K[Recommended Crop]
-        L[Pathogen Diagnosis & Treatment]
-        M[Dosage kg/acre & Yield Projection]
-        N[30-Day price trajectory]
-    end
-
-    A --> D
-    D --> G
-    B --> E
-    E --> H
-    C --> F
-    F --> J
-    A & I --> M
-    G --> K
-    H --> L
-    J --> N
-```
-
-### 2. WhatsApp Message Webhook Processing
-This diagram shows the asynchronous background processing pipeline that powers the Meta Cloud and Twilio WhatsApp chatbot interfaces:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Farmer
-    participant WhatsApp as Meta/Twilio Cloud API
-    participant Webhook as FastAPI Webhook Endpoint
-    participant DB as MySQL Database
-    participant ML as ML Models (CNN / LSTM)
-
-    Farmer->>WhatsApp: Sends query (text or leaf image)
-    WhatsApp->>Webhook: Sends HTTP POST (JSON Payload)
-    Webhook-->>WhatsApp: Returns 200 OK (Immediate Handshake)
-    
-    rect rgb(30, 41, 59)
-        note over Webhook, ML: Asynchronous Webhook Processing
-        Webhook->>DB: Query sender mobile (farmer profile lookup)
-        alt Message Type = Leaf Image
-            Webhook->>WhatsApp: Downloads leaf image binary
-            Webhook->>ML: Run CNN MobileNetV2 Inference
-            ML-->>Webhook: Returns disease + treatment recommendation
-            opt Farmer is Registered
-                Webhook->>DB: Save DiseaseRecord (FK linked)
-            end
-        else Message Type = Text Question
-            Webhook->>ML: Query LSTM for mandi price OR Gemini for agronomist tips
-            ML-->>Webhook: Returns price forecast / chat response
-        end
-        Webhook->>DB: Write UserActivity log
-        Webhook->>WhatsApp: Dispatch WhatsApp Message (POST)
-    end
-    WhatsApp->>Farmer: Delivery of advice/report on mobile
-```
-
-## 🧠 Machine Learning Core & Model Performance
-
-Krishik AI relies on a dedicated suite of Machine Learning and Deep Learning models for agronomic and commercial forecasting. The details, algorithms, and validation metrics for each model are summarized below:
-
-| Feature/Task | Model/Algorithm | Key Inputs | Output/Target | Performance Metrics |
+| Task Domain | Algorithm / Model | Training Data Volume | Evaluation Protocol | Performance Metrics |
 | :--- | :--- | :--- | :--- | :--- |
-| **Crop Recommendation** | **Random Forest Classifier** | Soil $N, P, K$, pH, Temp, Humidity, Rainfall | Predicted Crop (22 varieties) | **99.3% Testing Accuracy** (GridSearchCV) |
-| **Disease Detection** | **MobileNetV2 CNN** | RGB Leaf Image ($224 \times 224 \times 3$) | Leaf Disease Class (15 classes) | **95.0% Training Accuracy** (Transfer Learning) |
-| **Yield Prediction** | **XGBoost Regressor** | Area, Crop, Soil type, NPK, Temp, Rain, Humidity | Crop Yield (Quintals/Acre) | **R² Score > 0.99** |
-| **Fertilizer Recommendation** | **Decision Tree Classifier** | Crop, Soil, NPK, current Growth Stage | Fertilizer Type & Dosage (8 classes) | **100% Testing Accuracy** (Deterministic rules) |
-| **Market Price Forecasting** | **LSTM Neural Network** | Historic spot prices (30-day sequence lookback) | Next-day commodity price | **MSE Loss < 0.0032** (val_loss) |
+| **Crop Recommendation** | **Random Forest** (Selected) | 7,700 records (22 crops) | Stratified 10-Fold CV | **98.95% ± 0.42% Accuracy** (Holdout: 99.30%) |
+| **Yield Estimation** | **XGBoost Regressor** | 5,591 records (65 crops) | 80/20 Holdout & 10-Fold CV | **Holdout R²: 0.9074**, MAE: 0.4834 t/ha (CV R²: 0.9883) |
+| **Price Forecasting** | **Stacked LSTM** (64 units) | 571,183 market rows | Chronological Out-of-Sample | **Norm. MSE < 0.0032**, Directional Acc: **73.8%** |
+| **Foliar Pathology** | **MobileNetV2 CNN** | 34,526 images (34 classes) | Held-Out Test Set | **Top-1 Acc: 92.4%**, Top-5 Acc: **98.1%** |
+| **Fertilizer Advisory** | **Random Forest v2** | 3,500 records (4 classes) | Stratified 10-Fold CV | **76.91% ± 2.08% Accuracy**, Macro F1: **77.19%** |
 
 ---
 
-## 🛠️ Installation & Setup
+## 🚚 Transportation-Aware Freight Sensitivity Model
+
+Krishik AI addresses the spatial price arbitrage paradox: a distant mandi offering a higher nominal price may yield a lower net realization once road transport expenses are deducted.
+
+### Mathematical Formulation
+$$\Delta R_{\text{net}} = Q \left[ (P_B - P_A) - c_f \cdot d_B \right]$$
+
+$$d_{\max} = \frac{P_B - P_A}{c_f} = \frac{\Delta P}{c_f} \quad (\text{km})$$
+
+where:
+* $Q$: Harvest volume in quintals
+* $P_A, P_B$: Wholesale prices at local and distant mandis (₹/quintal)
+* $c_f$: Unit freight tariff (₹/quintal-km), baseline = ₹0.30
+* $d_B$: Additional transit distance (km) from precomputed OSRM matrix
+
+### Break-Even Distance Thresholds ($d_{\max}$ in km)
+| Price Premium ($\Delta P$) | ₹0.20/q-km | ₹0.25/q-km | ₹0.30/q-km (Baseline) | ₹0.40/q-km | ₹0.50/q-km |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **Rs. 50 / quintal** | 250.0 km | 200.0 km | **166.7 km** | 125.0 km | 100.0 km |
+| **Rs. 80 / quintal** | 400.0 km | 320.0 km | **266.7 km** | 200.0 km | 160.0 km |
+| **Rs. 100 / quintal** | 500.0 km | 400.0 km | **333.3 km** | 250.0 km | 200.0 km |
+| **Rs. 150 / quintal** | 750.0 km | 600.0 km | **500.0 km** | 375.0 km | 300.0 km |
+
+---
+
+## 🛠️ Technology Stack & Dependencies
+
+| Layer | Technologies & Frameworks |
+| :--- | :--- |
+| **Frontend** | React 18, Vite, Tailwind CSS, Lucide Icons, Chart.js / Recharts |
+| **Backend & APIs** | Python 3.11, FastAPI, Uvicorn, Pydantic, SQLAlchemy |
+| **Machine Learning** | Scikit-learn, XGBoost, TensorFlow / Keras, NumPy, Pandas |
+| **Database & Cache** | MySQL 8.0 (InnoDB, `utf8mb4_unicode_ci`), Redis |
+| **Geospatial & Spatial** | Open Source Routing Machine (OSRM), OpenStreetMap Graph, Haversine |
+| **External Integrations**| Open-Meteo API, Google Gemini API, Meta WhatsApp Cloud API, Twilio |
+
+---
+
+## 📁 Repository Structure
+
+```
+Farmer Assistant/
+├── backend/
+│   ├── app/
+│   │   ├── api/             # 13 REST API endpoints (crops, diseases, markets, whatsapp, etc.)
+│   │   ├── core/            # App settings, database configurations, and security
+│   │   ├── ml/              # Model loaders, preprocessors, and inference pipelines
+│   │   ├── models/          # SQLAlchemy ORM models & Pydantic validation schemas
+│   │   ├── services/        # Weather, WhatsApp, Gemini AI, and notification services
+│   │   └── main.py          # FastAPI application entry point
+│   └── requirements.txt     # Python backend dependencies
+├── frontend/
+│   ├── src/
+│   │   ├── components/      # Reusable UI components & modals
+│   │   ├── pages/           # Dashboard, Disease Scanner, Market Arbitrage, Schemes, etc.
+│   │   ├── services/        # Axios API client integrations
+│   │   └── App.jsx          # Main client application router
+│   ├── package.json         # Frontend Node dependencies
+│   └── vite.config.js       # Vite build configuration
+├── ml_training/
+│   ├── datasets/            # Crop stats, mandi prices, OSRM distance matrices
+│   ├── generate_paper_figures.py # Script for generating high-res research figures
+│   ├── generate_ieee_paper_docx.py # Script for IEEE paper document formatting
+│   └── run_sensitivity_analysis.py # Break-even logistics sensitivity computation
+└── README.md                # Project documentation
+```
+
+---
+
+## ⚙️ Installation & Local Setup
 
 ### Prerequisites
-* Python 3.10+
-* Node.js v18+
-* MySQL 8.0+
+* **Python**: 3.10 or 3.11
+* **Node.js**: v18+ & npm
+* **MySQL**: 8.0+
 
-### 1. Database Setup
-Create a MySQL database named `farmer_assistant`:
+### 1. Database Initialization
+Create the database in MySQL:
 ```sql
-CREATE DATABASE farmer_assistant;
+CREATE DATABASE farmer_assistant CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
-### 2. Backend Installation
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-2. Create and activate a virtual environment:
-   ```bash
-   python -m venv .venv
-   # Windows:
-   .venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
-   ```
-3. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-4. Configure environment variables. Copy `.env.example` to `.env` and fill in:
-   * MySQL credentials (`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)
-   * `GEMINI_API_KEY` for the AI Chatbot
-   * Meta WhatsApp / Twilio credentials (optional, for WhatsApp automation)
-5. Start the backend server:
-   ```bash
-   uvicorn app.main:app --reload
-   ```
-   *Note: On startup, the database tables, default staff accounts, and market price records will seed automatically.*
+### 2. Backend Setup
+```bash
+cd backend
 
-### 3. Frontend Installation
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Start the Vite development server:
-   ```bash
-   npm run dev
-   ```
-4. Access the web app at `http://localhost:5173`.
+# Create virtual environment
+python -m venv .venv
+
+# Activate virtual environment
+# Windows:
+.venv\Scripts\activate
+# Linux/macOS:
+source .venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your MySQL credentials, Gemini API key, and optional Twilio/Meta tokens
+
+# Start FastAPI development server
+uvicorn app.main:app --reload
+```
+*API documentation will be available at `http://localhost:8000/docs`.*
+
+### 3. Frontend Setup
+```bash
+cd ../frontend
+
+# Install dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+```
+*Access the web application at `http://localhost:5173`.*
 
 ---
 
-## 🧪 Model Specifications & Verification
+## 🧪 Testing & Verification
 
-To verify predictions and run checks on local models during a demo, you can consult the [Presentation Cheat Sheet](file:///d:/AAProjects/Farmer%20Assisstant/presentation_cheat_sheet.md) which lists precise benchmark values.
+```bash
+# Verify Python backend compilation
+python -m compileall backend/app
 
-### Automated Checks
-* **Verify Python codebase compilation:**
-  ```bash
-  python -m compileall backend/app
-  ```
-* **Verify frontend production bundling:**
-  ```bash
-  npm run build
-  ```
+# Run frontend production build test
+cd frontend && npm run build
+```
+
+---
+
+## 📜 Research & Citation
+
+If you use Krishik AI or its data-to-decision methodology in academic work, please cite:
+
+```bibtex
+@article{krishik_ai_2026,
+  title={Krishik AI: A Transportation-Aware Integrated Farm-to-Market Decision Pipeline for Smallholder Farmers in Telangana using Cascaded Machine Learning},
+  author={Reddy, D. Ruthwik and Kumar, B. Shiva and Harshavardhan, C. and Murthy, G. Vishnu},
+  journal={School of Engineering, Anurag University},
+  year={2026},
+  address={Hyderabad, India}
+}
+```
 
 ---
 
 ## 🛡️ License
 
-**© 2024-2026 D. Ruthwik Reddy. All Rights Reserved.**
+**© 2024–2026 D. Ruthwik Reddy, School of Engineering, Anurag University. All Rights Reserved.**
 
-This project is proprietary software. No part of this codebase, including source code, machine learning models, datasets, or documentation, may be used, copied, modified, or distributed without explicit written permission from the owner. See [`LICENSE`](./LICENSE) for full terms.
+This repository and its contents are proprietary. No part of this codebase, datasets, models, or documentation may be reproduced or distributed without explicit authorization.
